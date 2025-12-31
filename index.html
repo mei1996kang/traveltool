@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 關西之旅</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="bg-gray-50 pb-20">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-4 sticky top-0 z-50 shadow-md">
+        <h1 id="page-title" class="text-xl font-bold text-center">每日行程</h1>
+    </header>
+
+    <!-- 1. 行程頁面 -->
+    <div id="itinerary" class="tab-content active p-4">
+        <!-- 日期切換按鈕 -->
+        <div class="flex space-x-2 overflow-x-auto mb-4 pb-2">
+            <button onclick="showDay(1)" class="day-btn bg-blue-100 px-4 py-2 rounded-full text-sm font-bold min-w-fit">2/2 (一)</button>
+            <button onclick="showDay(2)" class="day-btn bg-white px-4 py-2 rounded-full text-sm min-w-fit border">2/3 (二)</button>
+            <button onclick="showDay(3)" class="day-btn bg-white px-4 py-2 rounded-full text-sm min-w-fit border">2/4 (三)</button>
+            <button onclick="showDay(4)" class="day-btn bg-white px-4 py-2 rounded-full text-sm min-w-fit border">2/5 (四)</button>
+            <button onclick="showDay(5)" class="day-btn bg-white px-4 py-2 rounded-full text-sm min-w-fit border">2/6 (五)</button>
+        </div>
+
+        <!-- 行程清單 (範例顯示第一天) -->
+        <div id="day-content">
+            <!-- 由 JavaScript 動態生成 -->
+        </div>
+    </div>
+
+    <!-- 2. 航班/票券頁面 -->
+    <div id="tickets" class="tab-content p-4">
+        <div class="bg-white p-4 rounded-xl shadow mb-4">
+            <h3 class="font-bold border-b pb-2 mb-2"><i class="fas fa-plane"></i> 航班資訊</h3>
+            <p class="text-sm">去程：星宇 JX822 (09:20 TPE → 12:50 KIX)</p>
+            <p class="text-sm text-gray-600">回程：星宇 JX821 (12:20 KIX → 14:35 TPE)</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow mb-4">
+            <h3 class="font-bold border-b pb-2 mb-2"><i class="fas fa-hotel"></i> 飯店資訊</h3>
+            <p class="text-sm">2/2: GRIDS PREMIUM HOTEL OSAKA NAMBA</p>
+            <p class="text-sm">2/3-2/6: Hotel Hankyu RESPIRE OSAKA</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow">
+            <h3 class="font-bold border-b pb-2 mb-2"><i class="fas fa-ticket-alt"></i> 票券/文件庫</h3>
+            <input type="file" id="ticket-upload" class="hidden" onchange="saveDoc(this)">
+            <button onclick="document.getElementById('ticket-upload').click()" class="bg-gray-100 w-full py-3 rounded text-sm mb-2 text-gray-600">+ 上傳票券截圖 (存於本地)</button>
+            <div id="doc-list" class="grid grid-cols-2 gap-2"></div>
+        </div>
+    </div>
+
+    <!-- 3. 記帳工具 -->
+    <div id="ledger" class="tab-content p-4">
+        <div class="bg-white p-4 rounded-xl shadow mb-4">
+            <h3 class="font-bold mb-3">新增支出 (日幣 JPY)</h3>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="number" id="exp-amount" placeholder="金額 (¥)" class="border p-2 rounded">
+                <select id="exp-category" class="border p-2 rounded text-sm">
+                    <option>交通</option>
+                    <option>美食</option>
+                    <option>購物</option>
+                    <option>代購</option>
+                </select>
+            </div>
+            <input type="date" id="exp-date" class="border p-2 rounded w-full mb-2">
+            <div class="flex items-center space-x-2 mb-3">
+                <label class="bg-gray-100 flex-1 text-center py-2 rounded cursor-pointer text-sm border border-dashed border-gray-400">
+                    <i class="fas fa-camera"></i> 拍收據
+                    <input type="file" accept="image/*" capture="camera" class="hidden" onchange="handleReceipt(this)">
+                </label>
+                <div id="receipt-preview" class="w-10 h-10 bg-gray-200 rounded hidden"></div>
+            </div>
+            <button onclick="addExpense()" class="bg-blue-600 text-white w-full py-2 rounded font-bold">儲存紀錄</button>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow">
+            <h3 class="font-bold mb-2">消費清單</h3>
+            <div id="expense-list" class="text-sm space-y-2"></div>
+            <div class="mt-4 pt-2 border-t font-bold text-right text-red-600" id="total-amount">總計: ¥0</div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 shadow-lg safe-area-bottom">
+        <button onclick="switchTab('itinerary')" class="flex flex-col items-center text-blue-600"><i class="fas fa-calendar-day text-xl"></i><span class="text-xs">行程</span></button>
+        <button onclick="switchTab('ledger')" class="flex flex-col items-center text-gray-400"><i class="fas fa-calculator text-xl"></i><span class="text-xs">記帳</span></button>
+        <button onclick="switchTab('tickets')" class="flex flex-col items-center text-gray-400"><i class="fas fa-folder-open text-xl"></i><span class="text-xs">文件</span></button>
+    </nav>
+
+    <script>
+        // 行程資料 (根據 PDF 提取)
+        const travelData = {
+            1: {
+                title: "2/2 (一) 抵達 & 臨空城",
+                items: [
+                    { time: "09:20", task: "✈️ 桃園機場起飛", loc: "桃園機場" },
+                    { time: "12:50", task: "抵達關西機場 (KIX)", loc: "Kansai International Airport" },
+                    { time: "14:00", task: "🛍️ 臨空城 Outlet", loc: "Rinku Premium Outlets" },
+                    { time: "19:25", task: "🏨 Check-in", loc: "GRIDS PREMIUM HOTEL OSAKA NAMBA" },
+                    { time: "19:30", task: "🍱 晚餐：大起水產", loc: "大起水產 迴轉壽司 道頓堀店" }
+                ]
+            },
+            2: {
+                title: "2/3 (二) 天橋立一日遊",
+                items: [
+                    { time: "06:40", task: "🚌 蟹道樂集合", loc: "蟹道樂道頓堀東店" },
+                    { time: "10:00", task: "🚢 伊根灣遊覽船", loc: "伊根灣遊覽船" },
+                    { time: "11:00", task: "🚠 天橋立傘松公園", loc: "天橋立傘松公園" },
+                    { time: "14:45", task: "🏡 美山茅草屋之里", loc: "美山茅草屋之里" },
+                    { time: "19:00", task: "🏨 Check-in", loc: "Hotel Hankyu RESPIRE OSAKA" }
+                ]
+            },
+            3: {
+                title: "2/4 (三) 貴船神社",
+                items: [
+                    { time: "12:40", task: "🚃 阪急前往京都", loc: "阪急大阪梅田站" },
+                    { time: "14:40", task: "⛩️ 貴船神社水占卜", loc: "貴船神社" },
+                    { time: "16:30", task: "📸 點燈時段拍照", loc: "貴船神社" },
+                    { time: "20:30", task: "🥩 晚餐：燒肉力丸", loc: "燒肉力丸 梅田東通店" }
+                ]
+            },
+            4: {
+                title: "2/5 (四) 勝尾寺 & 姬路城",
+                items: [
+                    { time: "09:10", task: "🔴 勝尾寺 (達摩)", loc: "勝尾寺" },
+                    { time: "13:35", task: "🏯 姬路城參觀", loc: "姬路城" },
+                    { time: "17:30", task: "🏨 回到飯店", loc: "Hotel Hankyu RESPIRE OSAKA" }
+                ]
+            },
+            5: {
+                title: "2/6 (五) 賦歸",
+                items: [
+                    { time: "08:00", task: "🚐 機場接送", loc: "Hotel Hankyu RESPIRE OSAKA" },
+                    { time: "12:20", task: "✈️ 關西機場起飛", loc: "Kansai International Airport" }
+                ]
+            }
+        };
+
+        // Tab 切換邏輯
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('nav button').forEach(el => el.classList.replace('text-blue-600', 'text-gray-400'));
+            event.currentTarget.classList.replace('text-gray-400', 'text-blue-600');
+            const titles = { itinerary: '每日行程', ledger: '記帳工具', tickets: '文件庫' };
+            document.getElementById('page-title').innerText = titles[tabId];
+        }
+
+        // 行程顯示邏輯
+        function showDay(day) {
+            const content = document.getElementById('day-content');
+            const data = travelData[day];
+            let html = `<div class="bg-blue-50 p-3 rounded-lg mb-4 text-blue-800 font-bold text-center">${data.title}</div>`;
+            
+            data.items.forEach(item => {
+                html += `
+                    <div class="flex items-start mb-4 bg-white p-3 rounded-lg shadow-sm">
+                        <div class="w-16 text-sm font-bold text-gray-500 pt-1">${item.time}</div>
+                        <div class="flex-1">
+                            <div class="font-bold">${item.task}</div>
+                            <button onclick="navigate('${item.loc}')" class="text-xs text-blue-500 mt-1"><i class="fas fa-location-arrow"></i> 導航至 ${item.loc}</button>
+                        </div>
+                    </div>`;
+            });
+            content.innerHTML = html;
+            
+            // 更新按鈕樣式
+            document.querySelectorAll('.day-btn').forEach((btn, idx) => {
+                if(idx + 1 === day) btn.className = "day-btn bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold min-w-fit";
+                else btn.className = "day-btn bg-white px-4 py-2 rounded-full text-sm min-w-fit border";
+            });
+        }
+
+        function navigate(loc) {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`, '_blank');
+        }
+
+        // 記帳邏輯
+        let expenses = JSON.parse(localStorage.getItem('travel_expenses')) || [];
+        function addExpense() {
+            const amount = document.getElementById('exp-amount').value;
+            const category = document.getElementById('exp-category').value;
+            const date = document.getElementById('exp-date').value;
+            if(!amount || !date) return alert('請輸入金額與日期');
+            
+            const item = { id: Date.now(), amount, category, date, receipt: tempReceipt };
+            expenses.push(item);
+            localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+            renderExpenses();
+            // 重置
+            document.getElementById('exp-amount').value = '';
+            document.getElementById('receipt-preview').classList.add('hidden');
+            tempReceipt = null;
+        }
+
+        let tempReceipt = null;
+        function handleReceipt(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                tempReceipt = e.target.result;
+                const preview = document.getElementById('receipt-preview');
+                preview.style.backgroundImage = `url(${tempReceipt})`;
+                preview.style.backgroundSize = 'cover';
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderExpenses() {
+            const list = document.getElementById('expense-list');
+            let total = 0;
+            list.innerHTML = expenses.map(ex => {
+                total += parseInt(ex.amount);
+                return `
+                <div class="flex justify-between items-center border-b pb-2">
+                    <div>
+                        <span class="font-bold">¥${ex.amount}</span> 
+                        <span class="text-xs bg-gray-100 px-1 rounded">${ex.category}</span>
+                        <div class="text-[10px] text-gray-400">${ex.date}</div>
+                    </div>
+                    ${ex.receipt ? `<button onclick="showImg('${ex.receipt}')" class="text-blue-500 text-xs">查看收據</button>` : ''}
+                    <button onclick="deleteExp(${ex.id})" class="text-red-400 text-xs ml-2">刪除</button>
+                </div>`;
+            }).join('');
+            document.getElementById('total-amount').innerText = `總計: ¥${total}`;
+        }
+
+        function deleteExp(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            localStorage.setItem('travel_expenses', JSON.stringify(expenses));
+            renderExpenses();
+        }
+
+        function showImg(src) {
+            const win = window.open("");
+            win.document.write(`<img src="${src}" style="width:100%">`);
+        }
+
+        // 初始化
+        showDay(1);
+        renderExpenses();
+        document.getElementById('exp-date').valueAsDate = new Date();
+    </script>
+</body>
+</html>
