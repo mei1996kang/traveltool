@@ -3,57 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Osaka Trip</title>
+    <title>2026 Osaka Trip Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-color: #fdfdfd; --text-main: #333333; --jp-blue: #1a2a6c; --jp-accent: #c04848; }
+        :root { --bg-color: #fdfdfd; --text-main: #333333; --jp-blue: #1a2a6c; }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
         .serif { font-family: 'Playfair Display', serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 行程時間軸 */
+        /* 行程時間軸佈局 */
         .timeline-item { position: relative; display: flex; padding-bottom: 2.5rem; }
         .time-side { width: 70px; flex-shrink: 0; text-align: right; padding-right: 20px; font-size: 1.25rem; font-weight: 700; color: #111; position: relative; }
         .time-side::after { content: ''; position: absolute; right: -1px; top: 12px; width: 9px; height: 9px; background: white; border: 1px solid #ddd; border-radius: 50%; z-index: 10; }
         .timeline-line { position: absolute; left: 69.5px; top: 12px; bottom: 0; width: 1px; background: #eee; }
         .content-side { flex: 1; padding-left: 20px; padding-top: 2px; }
 
-        /* 詳情彈窗 */
+        /* 詳情 Lightbox */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); }
-        .modal-content { 
-            background: white; margin: 10vh auto; width: 90%; max-width: 450px; 
-            border-radius: 24px; position: relative; max-height: 80vh; overflow-y: auto;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: fadeInUp 0.4s ease;
-        }
+        .modal-content { background: white; margin: 10vh auto; width: 90%; max-width: 450px; border-radius: 24px; position: relative; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: fadeInUp 0.4s ease; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 導覽列 */
+        /* 代購樣式 */
+        .purchased-item { opacity: 0.5; background-color: #f9f9f9 !important; }
+        .purchased-item .item-title { text-decoration: line-through; }
+        .filter-btn.active { background-color: var(--jp-blue); color: white; border-color: var(--jp-blue); }
+
+        .nav-btn { color: #ccc; transition: 0.3s; }
         .nav-active { color: var(--jp-blue) !important; font-weight: 700; }
         .day-btn.active { color: #111; font-weight: 700; border-bottom: 2px solid #111; }
-
-        /* 代購樣式 */
-        .purchased-item { opacity: 0.6; background-color: #f9f9f9 !important; }
-        .purchased-item .item-title { text-decoration: line-through; }
-        .filter-btn.active { background-color: var(--jp-blue); color: white; }
     </style>
 </head>
-<body class="pb-24 text-sm">
+<body class="pb-24">
 
     <!-- Header -->
-    <header class="p-6 text-center">
-        <div class="text-[9px] text-gray-400 tracking-[0.4em] mb-1 font-light uppercase">Osaka Trip</div>
-        <h1 class="text-xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
+    <header class="p-8 text-center">
+        <div class="text-[10px] text-gray-400 tracking-[0.4em] mb-2 font-light uppercase">Osaka Trip</div>
+        <h1 class="text-xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫 <span class="text-xs font-normal opacity-30 ml-1">2026</span></h1>
     </header>
 
     <!-- 詳情 Lightbox -->
     <div id="infoModal" class="modal" onclick="closeModal()">
         <div class="modal-content p-8" onclick="event.stopPropagation()">
-            <button class="absolute top-6 right-6 text-gray-400" onclick="closeModal()"><i class="fas fa-times text-xl"></i></button>
+            <button class="absolute top-6 right-6 text-gray-400 hover:text-black" onclick="closeModal()"><i class="fas fa-times text-xl"></i></button>
             <div id="modal-body" class="space-y-6"></div>
         </div>
     </div>
@@ -68,123 +64,113 @@
             <button onclick="showDay(5)" class="day-btn pb-1 text-gray-300 min-w-fit"><span class="text-[9px] block">FRI</span><span class="text-lg serif">2/6</span></button>
         </div>
         <div id="weather-section" class="mb-10 text-center border-y border-gray-50 py-4">
-            <h2 id="weather-city" class="text-xs font-medium tracking-widest uppercase mb-4 text-gray-400">Weather</h2>
-            <div id="hourly-weather" class="flex space-x-4 overflow-x-auto hide-scrollbar"></div>
+            <h2 id="weather-city" class="text-xs font-medium tracking-widest uppercase mb-4 text-gray-400">Loading...</h2>
+            <div id="hourly-weather" class="flex space-x-6 overflow-x-auto hide-scrollbar"></div>
         </div>
         <div id="day-content" class="relative"></div>
     </div>
 
-    <!-- 2. 代購清單 (全新升級) -->
+    <!-- 2. 代購清單 -->
     <div id="shopping" class="tab-content p-6">
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
-            <h3 class="text-[10px] font-bold mb-4 tracking-widest text-gray-300 uppercase">New Wish Item</h3>
-            <div class="space-y-3">
+            <h3 class="text-[10px] font-bold mb-4 tracking-widest text-gray-300 uppercase">Shopping List</h3>
+            <div class="space-y-3 text-sm">
                 <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b border-gray-100 py-2 outline-none">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="text" id="shop-spec" placeholder="規格 (如: 200g, 藍色)" class="w-full border-b border-gray-100 py-2 outline-none">
+                    <input type="text" id="shop-spec" placeholder="規格" class="w-full border-b border-gray-100 py-2 outline-none">
                     <input type="number" id="shop-qty" placeholder="數量" class="w-full border-b border-gray-100 py-2 outline-none">
                 </div>
-                <input type="text" id="shop-loc" placeholder="代購場所 (如: 大國藥妝)" class="w-full border-b border-gray-100 py-2 outline-none">
-                <!-- 在 shop-loc (代購場所) 欄位之後加入 -->
-<input type="text" id="shop-purchaser" placeholder="購買者 (如: 我, 老婆, 王小明)" class="w-full border-b border-gray-100 py-2 outline-none mb-2">
-				<label class="block border border-dashed border-gray-200 py-4 text-center rounded-2xl text-gray-400 text-[10px] cursor-pointer">
-                    <i class="fas fa-camera mr-2"></i>上傳參考圖片
+                <input type="text" id="shop-loc" placeholder="代購場所" class="w-full border-b border-gray-100 py-2 outline-none">
+                <input type="text" id="shop-purchaser" placeholder="購買者" class="w-full border-b border-gray-100 py-2 outline-none">
+                <label class="block border border-dashed border-gray-200 py-4 text-center rounded-2xl text-gray-400 text-[10px] cursor-pointer">
+                    <i class="fas fa-camera mr-2"></i>參考圖片
                     <input type="file" accept="image/*" class="hidden" onchange="processImage(this, 'shop')">
                 </label>
                 <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full text-[10px] tracking-widest font-bold">ADD TO LIST</button>
             </div>
         </div>
-
-        <!-- 篩選欄位 -->
-        <div class="mb-4">
-            <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-2">Filter by Location</p>
-            <div id="shop-filter-bar" class="flex space-x-2 overflow-x-auto hide-scrollbar">
-                <!-- 由 JS 生成 -->
-            </div>
-        </div>
-
+        <div id="shop-filter-bar" class="flex space-x-2 overflow-x-auto hide-scrollbar mb-4"></div>
         <div id="shopping-list" class="space-y-4"></div>
     </div>
 
     <!-- 3. 記帳工具 -->
     <div id="ledger" class="tab-content p-6">
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
-            <h3 class="text-[10px] font-bold mb-4 tracking-widest text-gray-300 uppercase">Expense</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <input type="text" id="exp-name" placeholder="項目" class="border-b border-gray-100 py-2 outline-none">
-                <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b border-gray-100 py-2 outline-none">
-                <select id="exp-method" class="border-b border-gray-100 py-2 bg-transparent outline-none">
+            <h3 class="text-[10px] font-bold mb-4 tracking-widest text-gray-300 uppercase">Ledger</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <input type="text" id="exp-name" placeholder="項目" class="border-b border-gray-100 py-3 outline-none">
+                <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b border-gray-100 py-3 outline-none">
+                <select id="exp-method" class="border-b border-gray-100 py-3 bg-transparent outline-none">
                     <option>現金</option><option>刷卡</option><option>Suica</option>
                 </select>
-                <input type="date" id="exp-date" class="border-b border-gray-100 py-2 outline-none bg-transparent">
+                <input type="date" id="exp-date" class="border-b border-gray-100 py-3 outline-none">
             </div>
-            <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full text-[10px] tracking-widest font-bold mt-6">SAVE EXPENSE</button>
+            <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full text-[10px] tracking-widest font-bold mt-6">SAVE</button>
         </div>
-        <div id="expense-list" class="space-y-1"></div>
+        <div id="expense-list" class="space-y-2"></div>
         <div id="total-amount" class="mt-8 text-right font-light text-xl">Total <span class="serif text-4xl font-bold ml-2">¥0</span></div>
     </div>
 
     <!-- 4. 文件/票券 -->
     <div id="tickets" class="tab-content p-6">
+        <div class="bg-indigo-900 text-white p-6 rounded-3xl mb-6 shadow-xl relative overflow-hidden">
+            <div class="text-[9px] opacity-40 tracking-[0.4em] mb-4">FLIGHT INFORMATION</div>
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-center"><div class="text-xl font-bold serif">TPE</div><div class="text-[9px] opacity-50">09:20</div></div>
+                <div class="flex-1 border-b border-dashed border-white/20 mx-4 relative"><i class="fas fa-plane absolute -top-2 left-1/2 -translate-x-1/2 text-xs"></i></div>
+                <div class="text-center"><div class="text-xl font-bold serif">KIX</div><div class="text-[9px] opacity-50">12:50</div></div>
+            </div>
+            <div class="text-[9px] opacity-60 text-center">STARLUX JX822 / JX821</div>
+        </div>
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
             <h3 class="text-[10px] font-bold mb-4 tracking-widest text-gray-300 uppercase">Documents</h3>
-            <input type="text" id="doc-name" placeholder="文件標題" class="w-full border-b border-gray-100 py-2 outline-none mb-4">
-            <label class="block border border-dashed border-gray-200 py-8 text-center rounded-2xl text-gray-400 text-[10px] cursor-pointer mb-6">
-                上傳截圖 <input type="file" accept="image/*" class="hidden" onchange="processImage(this, 'doc')">
-            </label>
-            <button onclick="addDoc()" class="w-full bg-black text-white py-4 rounded-full text-[10px] tracking-widest font-bold">UPLOAD</button>
+            <input type="text" id="doc-name" placeholder="標題" class="w-full border-b border-gray-100 py-3 text-sm outline-none mb-4">
+            <label class="block border border-dashed border-gray-200 py-6 text-center rounded-2xl text-gray-400 text-xs cursor-pointer mb-6">上傳照片截圖 <input type="file" accept="image/*" class="hidden" onchange="processImage(this, 'doc')"></label>
+            <button onclick="addDoc()" class="w-full bg-black text-white py-4 rounded-full text-[10px] font-bold tracking-widest">UPLOAD</button>
         </div>
         <div id="doc-list" class="space-y-3"></div>
     </div>
 
     <!-- Navbar -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-50 flex justify-around p-4 safe-area-bottom z-50">
-        <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-400"><i class="fas fa-stream text-lg"></i><span class="text-[9px] mt-1">PLAN</span></button>
-        <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center text-gray-400"><i class="fas fa-shopping-cart text-lg"></i><span class="text-[9px] mt-1">SHOP</span></button>
-        <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-400"><i class="fas fa-wallet text-lg"></i><span class="text-[9px] mt-1">CASH</span></button>
-        <button onclick="switchTab('tickets')" class="nav-btn flex flex-col items-center text-gray-400"><i class="fas fa-folder text-lg"></i><span class="text-[9px] mt-1">DOCS</span></button>
+        <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active"><i class="fas fa-stream text-lg"></i><span class="text-[9px] mt-1">PLAN</span></button>
+        <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center"><i class="fas fa-shopping-cart text-lg"></i><span class="text-[9px] mt-1">SHOP</span></button>
+        <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center"><i class="fas fa-wallet text-lg"></i><span class="text-[9px] mt-1">CASH</span></button>
+        <button onclick="switchTab('tickets')" class="nav-btn flex flex-col items-center"><i class="fas fa-folder text-lg"></i><span class="text-[9px] mt-1">DOCS</span></button>
     </nav>
 
     <script>
-        // --- 核心資料 ---
+        // --- 設定 ---
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzEv6Bda3jKfHZNoV-duexjmNT47igMmz0s_Ldm7fRyR23TH619rqp3bzYd9jXUT0yO/exec"; // 替換為你的 Google Apps Script URL
+
+        // --- 行程資料 ---
         const travelData = {
             1: { city: "Osaka", items: [
-                { t: "06:00", d: "住家 → 機捷台北車站", type: "TRANS", m: "計程車", r: "出發！" },
-                { t: "09:20", d: "星宇航空 JX822", type: "FLIGHT", m: "桃園機場 (TPE)", detail: { address: "第一航廈", booking: "JX-822", about: "預計 12:50 抵達關西 KIX" }},
-                { t: "13:56", d: "🛍️ 臨空城 Outlet", type: "SHOP", m: "Rinku Town", r: "藥妝、服飾首站。", detail: { address: "大阪府泉佐野市Rinku往來南3-28", about: "必買：西松屋、Onitsuka Tiger。" }},
-                { t: "19:25", d: "難波格利茲飯店入住", type: "HOTEL", m: "GRIDS PREMIUM", detail: { address: "大阪府大阪市浪速區難波中1-7-7", booking: "GRIDS-9900" }}
+                { t: "09:20", d: "✈️ 星宇航空 JX822", type: "FLIGHT", m: "桃園機場 (TPE)", r: "啟航。預計 12:50 抵達 KIX。", detail: { booking: "JX-822-ABC", about: "提早 2 小時抵達機場。" }},
+                { t: "13:56", d: "🛍️ 臨空城 Outlet", type: "SHOP", m: "Rinku Town", r: "首站購物。", detail: { address: "泉佐野市Rinku往來南3-28", about: "必看: 西松屋, Coleman。" }},
+                { t: "19:25", d: "難波格利茲飯店入住", type: "HOTEL", m: "GRIDS PREMIUM", r: "2/2 - 2/3 (1晚)", detail: { address: "大阪市浪速區難波中1-7-7", booking: "GRIDS-2026" }}
             ]},
             2: { city: "Kyoto", items: [
-                { t: "07:15", d: "KKDAY 巴士集合", type: "TRANS", m: "日本橋", detail: { address: "蟹道樂道頓堀東店", about: "準時發車，逾時不候。" }},
-                { t: "11:00", d: "天橋立 傘松公園", type: "SIGHT", m: "Amanohashidate", detail: { about: "日本三景，搭乘纜車看倒頭栽。" }},
-                { t: "19:00", d: "梅田龍仕柏飯店入住", type: "HOTEL", m: "Hotel Hankyu", detail: { address: "大阪府大阪市北區大深町1-1", booking: "RESPIRE-BK" }}
+                { t: "07:15", d: "KKDAY 巴士集合", type: "TRANS", m: "日本橋", r: "海之京都一日遊。", detail: { address: "蟹道樂道頓堀東店門口" }},
+                { t: "11:00", d: "天橋立 傘松公園", type: "SIGHT", m: "Amanohashidate", detail: { about: "倒頭栽看美景。" }},
+                { t: "19:00", d: "梅田龍仕柏飯店入住", type: "HOTEL", m: "Hotel Hankyu", r: "2/3 - 2/6 (3晚)", detail: { address: "大阪市北區大深町1-1", booking: "RESPIRE-BK" }}
             ]},
-            3: { city: "Kyoto", items: [
-                { t: "14:40", d: "貴船神社", type: "SIGHT", m: "Kifune", detail: { address: "京都市左京區鞍馬貴船町180", about: "體驗水占卜。" }}
-            ]},
-            4: { city: "Hyogo", items: [
-                { t: "13:35", d: "姬路城", type: "SIGHT", m: "Himeji Castle", detail: { address: "兵庫縣姬路市本町68", about: "世界遺產，白鷺城。" }}
-            ]},
-            5: { city: "Osaka", items: [
-                { t: "07:00", d: "🥐 飯店早餐", type: "FOOD", m: "Respire", r: "悠閒早餐後準備返台。" },
-                { t: "12:20", d: "星宇航空 JX821", type: "FLIGHT", m: "關西機場 (KIX)", detail: { booking: "JX-821-RET" }}
-            ]}
+            3: { city: "Kyoto", items: [{ t: "14:40", d: "貴船神社", type: "SIGHT", m: "Kifune", detail: { address: "京都市左京區鞍馬貴船町180", about: "水占卜體驗。" }}]},
+            4: { city: "Hyogo", items: [{ t: "13:35", d: "姬路城", type: "SIGHT", m: "Himeji Castle", detail: { about: "白鷺城，世界遺產。" }}]},
+            5: { city: "Osaka", items: [{ t: "07:00", d: "🥐 飯店早餐", type: "FOOD", m: "Respire" }, { t: "12:20", d: "星宇 JX821", type: "FLIGHT", m: "KIX" }]}
         };
 
         const cityCoords = { "Osaka": { lat: 34.69, lon: 135.50 }, "Kyoto": { lat: 35.01, lon: 135.76 }, "Hyogo": { lat: 34.81, lon: 134.69 } };
 
-        // --- 天氣 & 行程 ---
+        // --- 核心功能 ---
+
         async function fetchWeather(city) {
             const coord = cityCoords[city] || cityCoords["Osaka"];
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coord.lat}&longitude=${coord.lon}&hourly=temperature_2m,weathercode&timezone=Asia%2FTokyo&forecast_days=1`);
             const data = await res.json();
             document.getElementById('weather-city').innerText = city;
             document.getElementById('hourly-weather').innerHTML = data.hourly.temperature_2m.slice(0, 24).filter((_, i) => i % 4 === 0).map((temp, i) => `
-                <div class="flex-1 text-center">
-                    <div class="text-[8px] text-gray-300 uppercase mb-1">${i*4}:00</div>
-                    <div class="text-xs mb-1">${data.hourly.weathercode[i*4] <= 3 ? '☀️' : '☁️'}</div>
-                    <div class="text-[10px] font-bold serif">${Math.round(temp)}°</div>
-                </div>`).join('');
+                <div class="flex-1 text-center"><div class="text-[8px] text-gray-300 uppercase mb-1">${i*4}:00</div><div class="text-sm mb-1">${data.hourly.weathercode[i*4] <= 3 ? '☀️' : '☁️'}</div><div class="text-[10px] font-bold serif">${Math.round(temp)}°</div></div>`).join('');
         }
 
         function showDay(day) {
@@ -192,14 +178,7 @@
             fetchWeather(data.city);
             let html = '<div class="timeline-line"></div>';
             data.items.forEach((item, idx) => {
-                html += `<div class="timeline-item" onclick="openDetail(${day}, ${idx})">
-                    <div class="time-side serif">${item.t.split(':')[0]}<span class="text-[10px] text-gray-200">°</span></div>
-                    <div class="content-side">
-                        <div class="text-[8px] text-gray-300 font-bold mb-1 uppercase">${item.type}</div>
-                        <h4 class="text-sm font-bold text-gray-800">${item.d}</h4>
-                        <p class="text-[10px] text-gray-400 mt-1">${item.m}</p>
-                    </div>
-                </div>`;
+                html += `<div class="timeline-item" onclick="openDetail(${day}, ${idx})"><div class="time-side serif">${item.t.split(':')[0]}<span class="text-[10px] text-gray-200">°</span></div><div class="content-side"><div class="text-[9px] text-gray-300 font-bold tracking-tighter mb-1 uppercase">${item.type}</div><h4 class="text-md font-bold text-gray-800">${item.d}</h4><p class="text-[11px] text-gray-400 mt-1">${item.m}</p></div></div>`;
             });
             document.getElementById('day-content').innerHTML = html;
             document.querySelectorAll('.day-btn').forEach((b, i) => b.classList.toggle('active', i+1===day));
@@ -208,120 +187,101 @@
         function openDetail(day, idx) {
             const item = travelData[day].items[idx];
             const detail = item.detail || {};
-            let bodyHtml = `<div class="flex items-center gap-2 mb-2"><span class="text-[9px] bg-black text-white px-2 py-1 font-bold uppercase">${item.type}</span><span class="text-xs serif">${item.t}</span></div><h2 class="text-xl font-bold serif">${item.d}</h2>`;
-            if(detail.address) bodyHtml += `<div class="flex items-start gap-2 text-[10px] text-gray-400 underline mt-2" onclick="navigate('${detail.address}')"><i class="fas fa-map-marker-alt mt-0.5"></i><span>${detail.address}</span></div>`;
-            if(detail.booking) bodyHtml += `<div class="bg-gray-50 border border-dashed p-3 rounded-xl mt-4"><div class="text-[8px] text-gray-300 font-bold uppercase mb-1 tracking-widest">Booking Ref</div><div class="text-xs font-bold serif">${detail.booking}</div></div>`;
-            if(detail.about) bodyHtml += `<p class="text-[11px] text-gray-500 mt-4 leading-relaxed">${detail.about}</p>`;
+            let bodyHtml = `<div class="flex items-center gap-2 mb-2"><span class="text-[10px] bg-black text-white px-3 py-1 font-bold uppercase">${item.type}</span><span class="text-sm serif">${item.t}</span></div><h2 class="text-2xl font-bold serif leading-tight">${item.d}</h2>`;
+            if(detail.address) bodyHtml += `<div class="flex items-start gap-2 text-xs text-gray-400 underline mt-2" onclick="navigate('${detail.address}')"><i class="fas fa-map-marker-alt mt-1"></i><span>${detail.address}</span></div>`;
+            if(detail.booking) bodyHtml += `<div class="bg-gray-50 border border-dashed p-4 rounded-2xl mt-6"><div class="text-[8px] text-gray-300 font-bold uppercase mb-1">Reservation</div><div class="text-sm font-bold serif flex justify-between items-center">${detail.booking} <i class="far fa-copy" onclick="copyText('${detail.booking}')"></i></div></div>`;
+            if(detail.about) bodyHtml += `<p class="text-xs text-gray-500 mt-6 leading-relaxed">${detail.about}</p>`;
+            if(detail.address) bodyHtml += `<button onclick="navigate('${detail.address}')" class="w-full bg-black text-white py-4 rounded-full text-xs font-bold mt-8 tracking-widest">MAP GUIDE</button>`;
             document.getElementById('modal-body').innerHTML = bodyHtml;
             document.getElementById('infoModal').style.display = 'block';
         }
+
         function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
 
-        // --- 代購清單邏輯 (全新) ---
-        let shops = JSON.parse(localStorage.getItem('trip_shop_v9')) || [];
+        // --- 同步與存儲 ---
+        let shops = JSON.parse(localStorage.getItem('tr_shop_v10')) || [];
+        let exps = JSON.parse(localStorage.getItem('tr_exp_v10')) || [];
+        let docs = JSON.parse(localStorage.getItem('tr_doc_v10')) || [];
         let currentFilter = 'All';
         let tempImg = null;
 
+        async function syncToSheets(type, data) {
+            if (!GAS_URL.includes("exec")) return;
+            try { await fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type: type, data: data }) }); } catch (e) {}
+        }
+
         function addShoppingItem() {
             const name = document.getElementById('shop-name').value;
-            const loc = document.getElementById('shop-loc').value || '未定地點';
-            if(!name) return alert("請輸入名稱");
-            
-            shops.unshift({
-                id: Date.now(),
-                name: name,
-                spec: document.getElementById('shop-spec').value,
-                qty: document.getElementById('shop-qty').value || 1,
-                loc: loc,
-                img: tempImg,
-                purchased: false,
-                price: ""
-            });
-            localStorage.setItem('trip_shop_v9', JSON.stringify(shops));
-            tempImg = null;
-            document.getElementById('shop-name').value = '';
-            document.getElementById('shop-spec').value = '';
-            document.getElementById('shop-qty').value = '';
-            renderShop();
+            if(!name) return;
+            const item = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value || 1, loc: document.getElementById('shop-loc').value || '未定', purchaser: document.getElementById('shop-purchaser').value || '未指定', img: tempImg, purchased: false, price: "" };
+            shops.unshift(item);
+            saveAndRenderShop();
+            syncToSheets("shop", item);
+            document.getElementById('shop-name').value = ''; tempImg = null;
         }
 
         function renderShop() {
-            // 1. 生成篩選按鈕
-            const locations = ['All', ...new Set(shops.map(s => s.loc))];
-            document.getElementById('shop-filter-bar').innerHTML = locations.map(l => `
-                <button onclick="setShopFilter('${l}')" class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all ${currentFilter === l ? 'active' : 'bg-white text-gray-400'}">${l}</button>
-            `).join('');
-
-            // 2. 渲染清單
+            const locs = ['All', ...new Set(shops.map(s => s.loc))];
+            document.getElementById('shop-filter-bar').innerHTML = locs.map(l => `<button onclick="setFilter('${l}')" class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all ${currentFilter === l ? 'active' : 'bg-white text-gray-400'}">${l}</button>`).join('');
             const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
             document.getElementById('shopping-list').innerHTML = filtered.map(s => `
                 <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 ${s.purchased ? 'purchased-item' : ''}">
                     <div class="flex items-start gap-4">
                         <div class="w-14 h-14 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url(${s.img || ''})"></div>
                         <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <h4 class="text-sm font-bold item-title">${s.name}</h4>
-                                <button onclick="delShop(${s.id})" class="text-gray-200 text-xs"><i class="fas fa-trash-alt"></i></button>
+                            <div class="flex justify-between font-bold text-sm item-title"><span>${s.name}</span> <button onclick="delShop(${s.id})" class="text-gray-200">✕</button></div>
+                            <div class="text-[10px] text-gray-400 mt-1">${s.spec} | 數量: ${s.qty}</div>
+                            <div class="flex gap-2 mt-2 text-[8px] uppercase font-bold tracking-tighter">
+                                <span class="bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full">${s.loc}</span>
+                                <span class="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">${s.purchaser}</span>
                             </div>
-                            <div class="text-[10px] text-gray-400 mt-0.5">${s.spec} | 數量: ${s.qty}</div>
-                            <div class="text-[9px] bg-indigo-50 text-indigo-400 inline-block px-2 py-0.5 rounded-full mt-2"><i class="fas fa-store mr-1"></i>${s.loc}</div>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center justify-between border-t pt-3 mt-1">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="togglePurchased(${s.id})" class="w-4 h-4 rounded-full accent-indigo-900">
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Bought</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[9px] text-gray-300">¥</span>
-                            <input type="number" value="${s.price}" onblur="updatePrice(${s.id}, this.value)" placeholder="代購金額" class="w-20 border-b border-gray-100 text-xs text-right outline-none bg-transparent">
-                        </div>
+                    <div class="flex items-center justify-between border-t border-gray-50 pt-3">
+                        <input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="toggleShop(${s.id})" class="accent-indigo-900">
+                        <div class="flex items-center gap-1"><span class="text-[10px] text-gray-300">¥</span><input type="number" value="${s.price}" onblur="updateShopPrice(${s.id}, this.value)" class="w-20 border-b text-right text-xs bg-transparent"></div>
                     </div>
                 </div>`).join('');
         }
 
-        function setShopFilter(l) { currentFilter = l; renderShop(); }
-        function togglePurchased(id) { 
-            const idx = shops.findIndex(s => s.id === id);
-            shops[idx].purchased = !shops[idx].purchased;
-            saveAndRenderShop();
-        }
-        function updatePrice(id, val) {
-            const idx = shops.findIndex(s => s.id === id);
-            shops[idx].price = val;
-            saveAndRenderShop();
-        }
-        function delShop(id) { shops = shops.filter(s => s.id !== id); saveAndRenderShop(); }
-        function saveAndRenderShop() { localStorage.setItem('trip_shop_v9', JSON.stringify(shops)); renderShop(); }
+        function setFilter(l) { currentFilter = l; renderShop(); }
+        function toggleShop(id) { const i = shops.findIndex(s => s.id === id); shops[i].purchased = !shops[i].purchased; saveAndRenderShop(); syncToSheets("shop", shops[i]); }
+        function updateShopPrice(id, p) { const i = shops.findIndex(s => s.id === id); shops[i].price = p; saveAndRenderShop(); syncToSheets("shop", shops[i]); }
+        function delShop(id) { shops = shops.filter(s => s.id !== id); saveAndRenderShop(); syncToSheets("del_shop", {id}); }
+        function saveAndRenderShop() { localStorage.setItem('tr_shop_v10', JSON.stringify(shops)); renderShop(); }
 
-        // --- 記帳 & 文件 (維持原有邏輯) ---
-        let exps = JSON.parse(localStorage.getItem('tr_exp_v9')) || [];
         function addExpense() {
-            exps.unshift({ id: Date.now(), name: document.getElementById('exp-name').value, amt: document.getElementById('exp-amount').value, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value });
-            localStorage.setItem('tr_exp_v9', JSON.stringify(exps));
+            const e = { id: Date.now(), name: document.getElementById('exp-name').value, amt: document.getElementById('exp-amount').value, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value };
+            if(!e.name || !e.amt) return;
+            exps.unshift(e);
+            localStorage.setItem('tr_exp_v10', JSON.stringify(exps));
             renderLedger();
+            syncToSheets("exp", e);
+            document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
         }
+
         function renderLedger() {
             let total = 0;
             document.getElementById('expense-list').innerHTML = exps.map(e => {
                 total += Number(e.amt);
-                return `<div class="bg-white p-3 border-b flex justify-between items-center"><div class="text-[11px] font-bold">${e.name}<div class="text-[8px] text-gray-300">${e.method}</div></div><div class="flex items-center gap-4"><span class="serif font-bold text-xs">¥${e.amt}</span><button onclick="delExp(${e.id})" class="text-gray-100">✕</button></div></div>`;
+                return `<div class="bg-white p-4 border-b border-gray-50 flex justify-between items-center"><div class="text-xs font-bold">${e.name}<div class="text-[9px] text-gray-300">${e.method} | ${e.date}</div></div><div class="flex items-center gap-4"><span class="serif font-bold text-xs">¥${e.amt}</span> <button onclick="delExp(${e.id})" class="text-gray-200">✕</button></div></div>`;
             }).join('');
             document.querySelector('#total-amount span').innerText = `¥${total}`;
         }
-        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v9', JSON.stringify(exps)); renderLedger(); }
+        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v10', JSON.stringify(exps)); renderLedger(); syncToSheets("del_exp", {id}); }
 
-        let docs = JSON.parse(localStorage.getItem('tr_doc_v9')) || [];
         function addDoc() {
-            docs.unshift({ id: Date.now(), name: document.getElementById('doc-name').value, img: tempImg });
-            localStorage.setItem('tr_doc_v9', JSON.stringify(docs));
+            const d = { id: Date.now(), name: document.getElementById('doc-name').value, img: tempImg };
+            if(!d.name || !tempImg) return;
+            docs.unshift(d);
+            localStorage.setItem('tr_doc_v10', JSON.stringify(docs));
             renderDocs();
+            document.getElementById('doc-name').value = ''; tempImg = null;
         }
         function renderDocs() {
-            document.getElementById('doc-list').innerHTML = docs.map(d => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm"><div class="text-[11px] font-bold">${d.name}</div><div class="flex gap-4"><button onclick="viewImg('${d.img}')" class="text-[10px] font-bold text-blue-400">VIEW</button><button onclick="delDoc(${d.id})" class="text-gray-100">✕</button></div></div>`).join('');
+            document.getElementById('doc-list').innerHTML = docs.map(d => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center"><div class="text-xs font-bold">${d.name}</div><div class="flex gap-4"><button onclick="viewImg('${d.img}')" class="text-xs text-blue-400 font-bold">VIEW</button><button onclick="delDoc(${d.id})" class="text-gray-200">✕</button></div></div>`).join('');
         }
-        function delDoc(id) { docs = docs.filter(d => d.id !== id); localStorage.setItem('tr_doc_v9', JSON.stringify(docs)); renderDocs(); }
+        function delDoc(id) { docs = docs.filter(d => d.id !== id); localStorage.setItem('tr_doc_v10', JSON.stringify(docs)); renderDocs(); }
 
         function processImage(input) {
             const reader = new FileReader();
@@ -337,161 +297,21 @@
             };
             reader.readAsDataURL(input.files[0]);
         }
+
         function switchTab(t) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(t).classList.add('active');
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
             event.currentTarget.classList.add('nav-active');
         }
+
         function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
         function viewImg(s) { const w = window.open(""); w.document.write(`<img src="${s}" style="width:100%">`); }
+        function copyText(t) { navigator.clipboard.writeText(t); alert("已複製: " + t); }
 
-        // 初始化
+        // --- 初始化 ---
         showDay(1); renderShop(); renderLedger(); renderDocs();
         document.getElementById('exp-date').valueAsDate = new Date();
-		
-		// --- Google Sheets 串接設定 ---
-		const GAS_URL = "https://script.google.com/macros/s/AKfycbyGp06WIA8lErXczy52gkYg1AIayK5DsSzb-O_-JCT5xa282L-bEPNagHxxZap5Hip4/exec"; 
-		
-		async function syncToSheets(type, data) {
-			if (!GAS_URL.includes("exec")) return; // 如果沒設 URL 就不執行
-			try {
-				await fetch(GAS_URL, {
-					method: "POST",
-					mode: 'no-cors', // 解決跨網域問題
-					body: JSON.stringify({ type: type, data: data })
-				});
-				console.log(`Sync Success: ${type}`);
-			} catch (e) {
-				console.error("Sync Error", e);
-			}
-		}
-		
-		// --- 修改後的儲存與刪除函數 ---
-		
-		// 1. 代購項目新增
-		function addShoppingItem() {
-			const name = document.getElementById('shop-name').value;
-			const loc = document.getElementById('shop-loc').value || '未定地點';
-			const purchaser = document.getElementById('shop-purchaser').value || '未指定';
-			
-			if(!name) return alert("請輸入商品名稱");
-			
-			const newItem = {
-				id: Date.now(),
-				name: name,
-				spec: document.getElementById('shop-spec').value,
-				qty: document.getElementById('shop-qty').value || 1,
-				loc: loc,
-				purchaser: purchaser, // 新增欄位
-				img: tempImg,
-				purchased: false,
-				price: ""
-			};
-			
-			shops.unshift(newItem);
-			saveAndRenderShop();
-			syncToSheets("shop", newItem); // 同步到 Sheets
-			
-			// 清空輸入
-			document.getElementById('shop-name').value = '';
-			document.getElementById('shop-spec').value = '';
-			document.getElementById('shop-qty').value = '';
-			document.getElementById('shop-loc').value = '';
-			document.getElementById('shop-purchaser').value = '';
-			tempImg = null;
-			document.getElementById('shop-img-status').innerText = "上傳參考圖片";
-		}
-		// 2. 渲染清單 (顯示購買者)
-		function renderShop() {
-			// 生成篩選按鈕 (略...)
-			const locations = ['All', ...new Set(shops.map(s => s.loc))];
-			document.getElementById('shop-filter-bar').innerHTML = locations.map(l => `
-				<button onclick="setShopFilter('${l}')" class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all ${currentFilter === l ? 'active' : 'bg-white text-gray-400'}">${l}</button>
-			`).join('');
-		
-			// 渲染清單
-			const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
-			document.getElementById('shopping-list').innerHTML = filtered.map(s => `
-				<div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 ${s.purchased ? 'purchased-item' : ''}">
-					<div class="flex items-start gap-4">
-						<div class="w-14 h-14 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url(${s.img || ''})"></div>
-						<div class="flex-1">
-							<div class="flex justify-between items-start">
-								<h4 class="text-sm font-bold item-title">${s.name}</h4>
-								<button onclick="delShop(${s.id})" class="text-gray-200 text-xs"><i class="fas fa-trash-alt"></i></button>
-							</div>
-							<div class="text-[10px] text-gray-400 mt-0.5">${s.spec} | 數量: ${s.qty}</div>
-							
-							<!-- 顯示場所與購買者 -->
-							<div class="flex flex-wrap gap-2 mt-2">
-								<div class="text-[9px] bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full"><i class="fas fa-store mr-1"></i>${s.loc}</div>
-								<div class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><i class="fas fa-user mr-1"></i>${s.purchaser}</div>
-							</div>
-						</div>
-					</div>
-					
-					<div class="flex items-center justify-between border-t pt-3 mt-1">
-						<label class="flex items-center gap-2 cursor-pointer">
-							<input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="togglePurchased(${s.id})" class="w-4 h-4 rounded-full accent-indigo-900">
-							<span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Bought</span>
-						</label>
-						<div class="flex items-center gap-2">
-							<span class="text-[9px] text-gray-300">¥</span>
-							<input type="number" value="${s.price}" onblur="updatePrice(${s.id}, this.value)" placeholder="代購金額" class="w-20 border-b border-gray-100 text-xs text-right outline-none bg-transparent">
-						</div>
-					</div>
-				</div>`).join('');
-		}
-
-		
-		// 3. 代購狀態更新 (勾選與金額)
-		function togglePurchased(id) { 
-			const idx = shops.findIndex(s => s.id === id);
-			shops[idx].purchased = !shops[idx].purchased;
-			saveAndRenderShop();
-			syncToSheets("shop", shops[idx]); // 同步更新狀態到 Sheets
-		}
-		
-		function updatePrice(id, val) {
-			const idx = shops.findIndex(s => s.id === id);
-			shops[idx].price = val;
-			saveAndRenderShop();
-			syncToSheets("shop", shops[idx]); // 同步更新價格到 Sheets
-		}
-		
-		// 4. 記帳新增
-		function addExpense() {
-			const name = document.getElementById('exp-name').value;
-			const amt = document.getElementById('exp-amount').value;
-			const method = document.getElementById('exp-method').value;
-			const date = document.getElementById('exp-date').value;
-			if(!name || !amt) return;
-		
-			const newExp = { id: Date.now(), name, amt, method, date };
-			exps.unshift(newExp);
-			localStorage.setItem('tr_exp_v9', JSON.stringify(exps));
-			renderLedger();
-			syncToSheets("exp", newExp); // 同步到 Sheets
-			
-			document.getElementById('exp-name').value = '';
-			document.getElementById('exp-amount').value = '';
-		}
-		
-		// 5. 刪除同步
-		function delShop(id) {
-			const itemToDelete = shops.find(s => s.id === id);
-			shops = shops.filter(s => s.id !== id);
-			saveAndRenderShop();
-			syncToSheets("del_shop", { id: id }); // 從 Sheets 刪除
-		}
-		
-		function delExp(id) {
-			exps = exps.filter(e => e.id !== id);
-			localStorage.setItem('tr_exp_v9', JSON.stringify(exps));
-			renderLedger();
-			syncToSheets("del_exp", { id: id }); // 從 Sheets 刪除
-		}
     </script>
 </body>
 </html>
