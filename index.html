@@ -225,15 +225,28 @@
             document.getElementById('shop-filter-bar').innerHTML = locs.map(l => `<button onclick="setFilter('${l}')" class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all ${currentFilter === l ? 'active' : 'bg-white text-gray-400'}">${l}</button>`).join('');
             const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
             document.getElementById('shopping-list').innerHTML = filtered.map(s => `
+            // 修正圖片路徑邏輯
+                let displayImg = s.img || '';
+            // 如果有字串但沒前綴，自動補上
+                if (displayImg && !displayImg.startsWith('data:')) {
+            displayImg = 'data:image/jpeg;base64,' + displayImg;
+            }
+                return `
                 <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 ${s.purchased ? 'purchased-item' : ''}">
                     <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url(${s.img || ''})"></div>
+                        <div class="w-14 h-14 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" 
+                             style="background-image:url('${displayImg}')" 
+                             onclick="viewImg('${displayImg}')">
+                        </div>
                         <div class="flex-1">
-                            <div class="flex justify-between font-bold text-sm item-title"><span>${s.name}</span> <button onclick="delShop(${s.id})" class="text-gray-200">✕</button></div>
-                            <div class="text-[10px] text-gray-400 mt-1">${s.spec} | 數量: ${s.qty}</div>
-                            <div class="flex gap-2 mt-2 text-[8px] uppercase font-bold tracking-tighter">
-                                <span class="bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full">${s.loc}</span>
-                                <span class="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">${s.purchaser}</span>
+                            <div class="flex justify-between font-bold text-sm item-title">
+                                <span>${s.name}</span> 
+                                <button onclick="delShop(${s.id})" class="text-gray-200">✕</button>
+                            </div>
+                            <div class="text-[10px] text-gray-400 mt-1">${s.spec || ''} | 數量: ${s.qty || 1}</div>
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-[8px] bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full">${s.loc}</span>
+                                <span class="text-[8px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">${s.purchaser}</span>
                             </div>
                         </div>
                     </div>
@@ -284,14 +297,40 @@
         function delDoc(id) { docs = docs.filter(d => d.id !== id); localStorage.setItem('tr_doc_v10', JSON.stringify(docs)); renderDocs(); }
 
         function processImage(input) {
+            if (!input.files || !input.files[0]) return;
+            
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = 500; canvas.height = (img.height/img.width)*500;
-                    canvas.getContext('2d').drawImage(img, 0, 0, 500, canvas.height);
-                    tempImg = canvas.toDataURL('image/jpeg', 0.5);
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 強力壓縮：最大寬度降至 400px
+                    const MAX_WIDTH = 400;
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // 品質降至 0.4 確保字串長度低於 50,000 字
+                    tempImg = canvas.toDataURL('image/jpeg', 0.4);
+                    
+                    // 預覽
+                    if (document.getElementById('shop-img-status')) {
+                        document.getElementById('shop-img-status').innerText = "✅ 圖片壓縮完成";
+                    }
+                    console.log("Base64 長度:", tempImg.length);
+                    if (tempImg.length > 50000) {
+                        alert("圖片太大，可能無法同步至雲端，請嘗試縮小拍照範圍");
+                    }
                 };
                 img.src = e.target.result;
             };
@@ -306,7 +345,18 @@
         }
 
         function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
-        function viewImg(s) { const w = window.open(""); w.document.write(`<img src="${s}" style="width:100%">`); }
+        function viewImg(s) {
+            if (!s || s.length < 100) {
+                alert("圖片毀損或尚未同步完成");
+                return;
+            }
+            const w = window.open("");
+            w.document.write(`
+                <body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center;">
+                    <img src="${s}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                </body>
+            `);
+        }
         function copyText(t) { navigator.clipboard.writeText(t); alert("已複製: " + t); }
 
         // --- 初始化 ---
