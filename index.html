@@ -198,7 +198,7 @@
 
         function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
 
-        // --- 同步與存儲 ---
+        // --- 同步與儲存 ---
         let shops = JSON.parse(localStorage.getItem('tr_shop_v10')) || [];
         let exps = JSON.parse(localStorage.getItem('tr_exp_v10')) || [];
         let docs = JSON.parse(localStorage.getItem('tr_doc_v10')) || [];
@@ -310,8 +310,38 @@
         function copyText(t) { navigator.clipboard.writeText(t); alert("已複製: " + t); }
 
         // --- 初始化 ---
-        showDay(1); renderShop(); renderLedger(); renderDocs();
-        document.getElementById('exp-date').valueAsDate = new Date();
+        async function initData() {
+            // 先顯示本地資料 (讓使用者不用等)
+            renderShop();
+            renderLedger();
+            renderDocs();
+            showDay(1);
+        
+            // 從 Google Sheets 抓取最新資料
+            if (GAS_URL.includes("exec")) {
+                console.log("正在從雲端同步資料...");
+                try {
+                    const response = await fetch(GAS_URL);
+                    const cloudData = await response.json();
+        
+                    if (cloudData.shops && cloudData.shops.length > 0) {
+                        shops = cloudData.shops;
+                        localStorage.setItem('tr_shop_v10', JSON.stringify(shops));
+                        renderShop();
+                    }
+                    if (cloudData.exps && cloudData.exps.length > 0) {
+                        exps = cloudData.exps;
+                        localStorage.setItem('tr_exp_v10', JSON.stringify(exps));
+                        renderLedger();
+                    }
+                    console.log("雲端同步完成！");
+                } catch (e) {
+                    console.error("雲端同步失敗，使用本地紀錄", e);
+                }
+            }
+        }
+
+        window.onload = initData;
     </script>
 </body>
 </html>
