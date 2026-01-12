@@ -371,7 +371,9 @@
 		function addShoppingItem() {
 			const name = document.getElementById('shop-name').value;
 			const loc = document.getElementById('shop-loc').value || '未定地點';
-			if(!name) return alert("請輸入名稱");
+			const purchaser = document.getElementById('shop-purchaser').value || '未指定';
+			
+			if(!name) return alert("請輸入商品名稱");
 			
 			const newItem = {
 				id: Date.now(),
@@ -379,6 +381,7 @@
 				spec: document.getElementById('shop-spec').value,
 				qty: document.getElementById('shop-qty').value || 1,
 				loc: loc,
+				purchaser: purchaser, // 新增欄位
 				img: tempImg,
 				purchased: false,
 				price: ""
@@ -392,10 +395,55 @@
 			document.getElementById('shop-name').value = '';
 			document.getElementById('shop-spec').value = '';
 			document.getElementById('shop-qty').value = '';
+			document.getElementById('shop-loc').value = '';
+			document.getElementById('shop-purchaser').value = '';
 			tempImg = null;
+			document.getElementById('shop-img-status').innerText = "上傳參考圖片";
 		}
+		// 2. 渲染清單 (顯示購買者)
+		function renderShop() {
+			// 生成篩選按鈕 (略...)
+			const locations = ['All', ...new Set(shops.map(s => s.loc))];
+			document.getElementById('shop-filter-bar').innerHTML = locations.map(l => `
+				<button onclick="setShopFilter('${l}')" class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all ${currentFilter === l ? 'active' : 'bg-white text-gray-400'}">${l}</button>
+			`).join('');
 		
-		// 2. 代購狀態更新 (勾選與金額)
+			// 渲染清單
+			const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
+			document.getElementById('shopping-list').innerHTML = filtered.map(s => `
+				<div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 ${s.purchased ? 'purchased-item' : ''}">
+					<div class="flex items-start gap-4">
+						<div class="w-14 h-14 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url(${s.img || ''})"></div>
+						<div class="flex-1">
+							<div class="flex justify-between items-start">
+								<h4 class="text-sm font-bold item-title">${s.name}</h4>
+								<button onclick="delShop(${s.id})" class="text-gray-200 text-xs"><i class="fas fa-trash-alt"></i></button>
+							</div>
+							<div class="text-[10px] text-gray-400 mt-0.5">${s.spec} | 數量: ${s.qty}</div>
+							
+							<!-- 顯示場所與購買者 -->
+							<div class="flex flex-wrap gap-2 mt-2">
+								<div class="text-[9px] bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full"><i class="fas fa-store mr-1"></i>${s.loc}</div>
+								<div class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full"><i class="fas fa-user mr-1"></i>${s.purchaser}</div>
+							</div>
+						</div>
+					</div>
+					
+					<div class="flex items-center justify-between border-t pt-3 mt-1">
+						<label class="flex items-center gap-2 cursor-pointer">
+							<input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="togglePurchased(${s.id})" class="w-4 h-4 rounded-full accent-indigo-900">
+							<span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Bought</span>
+						</label>
+						<div class="flex items-center gap-2">
+							<span class="text-[9px] text-gray-300">¥</span>
+							<input type="number" value="${s.price}" onblur="updatePrice(${s.id}, this.value)" placeholder="代購金額" class="w-20 border-b border-gray-100 text-xs text-right outline-none bg-transparent">
+						</div>
+					</div>
+				</div>`).join('');
+		}
+
+		
+		// 3. 代購狀態更新 (勾選與金額)
 		function togglePurchased(id) { 
 			const idx = shops.findIndex(s => s.id === id);
 			shops[idx].purchased = !shops[idx].purchased;
@@ -410,7 +458,7 @@
 			syncToSheets("shop", shops[idx]); // 同步更新價格到 Sheets
 		}
 		
-		// 3. 記帳新增
+		// 4. 記帳新增
 		function addExpense() {
 			const name = document.getElementById('exp-name').value;
 			const amt = document.getElementById('exp-amount').value;
@@ -428,7 +476,7 @@
 			document.getElementById('exp-amount').value = '';
 		}
 		
-		// 4. 刪除同步
+		// 5. 刪除同步
 		function delShop(id) {
 			const itemToDelete = shops.find(s => s.id === id);
 			shops = shops.filter(s => s.id !== id);
