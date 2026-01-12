@@ -221,42 +221,84 @@
         }
 
         function renderShop() {
-            const locs = ['All', ...new Set(shops.map(s => s.loc))];
-            document.getElementById('shop-filter-bar').innerHTML = locs.map(l => `<button onclick="setFilter('${l}')" class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all ${currentFilter === l ? 'active' : 'bg-white text-gray-400'}">${l}</button>`).join('');
-            const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
-            document.getElementById('shopping-list').innerHTML = filtered.map(s => `
-            // 修正圖片路徑邏輯
-                let displayImg = s.img || '';
-            // 如果有字串但沒前綴，自動補上
-                if (displayImg && !displayImg.startsWith('data:')) {
-            displayImg = 'data:image/jpeg;base64,' + displayImg;
+            // 1. 處理場所篩選按鈕 (Filter Bar)
+            const locs = ['All', ...new Set(shops.map(s => s.loc || '未定'))];
+            const filterBar = document.getElementById('shop-filter-bar');
+            if (filterBar) {
+                filterBar.innerHTML = locs.map(l => `
+                    <button onclick="setFilter('${l}')" 
+                            class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all flex-shrink-0 
+                            ${currentFilter === l ? 'active bg-indigo-900 text-white border-indigo-900' : 'bg-white text-gray-400 border-gray-100'}">
+                        ${l}
+                    </button>
+                `).join('');
             }
+        
+            // 2. 根據目前選擇的場所過濾清單
+            const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
+            
+            // 3. 渲染清單內容
+            const listContainer = document.getElementById('shopping-list');
+            if (!listContainer) return;
+        
+            listContainer.innerHTML = filtered.map(s => {
+                // --- 圖片處理邏輯 ---
+                let displayImg = s.img || '';
+                // 關鍵修復：如果字串存在但沒有 data: 前綴，則手動補上
+                if (displayImg && displayImg.length > 100 && !displayImg.startsWith('data:')) {
+                    displayImg = 'data:image/jpeg;base64,' + displayImg;
+                }
+        
+                // --- 條件顯示欄位 ---
+                // 只有在有填寫規格或數量時才顯示該行
+                const specInfo = (s.spec || s.qty) ? `<div class="text-[10px] text-gray-400 mt-1">${s.spec || ''} | 數量: ${s.qty || 1}</div>` : '';
+                // 只有有填寫購買者時才顯示標籤
+                const purchaserTag = s.purchaser ? `<span class="bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">${s.purchaser}</span>` : '';
+        
                 return `
-                <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 ${s.purchased ? 'purchased-item' : ''}">
-                    <div class="flex items-start gap-4">
-                        <div class="w-14 h-14 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" 
-                             style="background-image:url('${displayImg}')" 
-                             onclick="viewImg('${displayImg}')">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between font-bold text-sm item-title">
-                                <span>${s.name}</span> 
-                                <button onclick="delShop(${s.id})" class="text-gray-200">✕</button>
+                    <div class="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-3 ${s.purchased ? 'purchased-item opacity-50' : ''}">
+                        <div class="flex items-start gap-4">
+                            <!-- 圖片區塊：增加點擊放大功能 -->
+                            <div class="w-16 h-16 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0 border border-gray-50" 
+                                 style="background-image:url('${displayImg || 'https://via.placeholder.com/100?text=No+Img'}')"
+                                 onclick="viewImg('${displayImg}')">
                             </div>
-                            <div class="text-[10px] text-gray-400 mt-1">${s.spec || ''} | 數量: ${s.qty || 1}</div>
-                            <div class="flex gap-2 mt-2">
-                                <span class="text-[8px] bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full">${s.loc}</span>
-                                <span class="text-[8px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">${s.purchaser}</span>
+                            
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between font-bold text-sm item-title">
+                                    <span class="truncate">${s.name}</span> 
+                                    <button onclick="delShop(${s.id})" class="text-gray-200 ml-2 hover:text-red-400">✕</button>
+                                </div>
+                                
+                                ${specInfo}
+                                
+                                <div class="flex flex-wrap gap-2 mt-2 text-[8px] uppercase font-bold tracking-tighter">
+                                    <span class="bg-indigo-50 text-indigo-400 px-2 py-0.5 rounded-full"><i class="fas fa-store mr-1"></i>${s.loc || '未定'}</span>
+                                    ${purchaserTag}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-gray-50 pt-3">
-                        <input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="toggleShop(${s.id})" class="accent-indigo-900">
-                        <div class="flex items-center gap-1"><span class="text-[10px] text-gray-300">¥</span><input type="number" value="${s.price}" onblur="updateShopPrice(${s.id}, this.value)" class="w-20 border-b text-right text-xs bg-transparent"></div>
-                    </div>
-                </div>`).join('');
+        
+                        <!-- 下方互動區：勾選框與金額 -->
+                        <div class="flex items-center justify-between border-t border-gray-50 pt-3 mt-1">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" ${s.purchased ? 'checked' : ''} 
+                                       onchange="toggleShop(${s.id})" 
+                                       class="w-4 h-4 rounded-full accent-indigo-900">
+                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">Already Bought</span>
+                            </label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[10px] text-gray-300 serif">¥</span>
+                                <input type="number" 
+                                       value="${s.price || ''}" 
+                                       onblur="updateShopPrice(${s.id}, this.value)" 
+                                       placeholder="輸入單價" 
+                                       class="w-20 border-b border-gray-100 text-right text-xs bg-transparent outline-none focus:border-indigo-300">
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
         }
-
         function setFilter(l) { currentFilter = l; renderShop(); }
         function toggleShop(id) { const i = shops.findIndex(s => s.id === id); shops[i].purchased = !shops[i].purchased; saveAndRenderShop(); syncToSheets("shop", shops[i]); }
         function updateShopPrice(id, p) { const i = shops.findIndex(s => s.id === id); shops[i].price = p; saveAndRenderShop(); syncToSheets("shop", shops[i]); }
@@ -346,14 +388,27 @@
 
         function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
         function viewImg(s) {
+            // 檢查圖片字串是否有效（長度太短通常代表資料毀損）
             if (!s || s.length < 100) {
                 alert("圖片毀損或尚未同步完成");
                 return;
             }
+        
+            // 確保圖片有正確的 Base64 前綴，否則瀏覽器無法解析
+            let imgSrc = s;
+            if (!imgSrc.startsWith('data:')) {
+                imgSrc = 'data:image/jpeg;base64,' + imgSrc;
+            }
+        
+            // 開啟新分頁並優化顯示樣式（黑底、置中、手機縮放比例）
             const w = window.open("");
             w.document.write(`
-                <body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center;">
-                    <img src="${s}" style="max-width:100%; max-height:100%; object-fit:contain;">
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>圖片查看</title>
+                </head>
+                <body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center; height:100vh;">
+                    <img src="${imgSrc}" style="max-width:100%; max-height:100%; object-fit:contain;">
                 </body>
             `);
         }
@@ -361,19 +416,34 @@
 
         // --- 初始化 ---
         async function initData() {
-            // 先顯示本地資料 (讓使用者不用等)
-            renderShop();
-            renderLedger();
-            renderDocs();
-            showDay(1);
+            console.log("初始化 PWA...");
+            
+            // --- 第一步：優先渲染本地行程，解決 LOADING 卡住問題 ---
+            try {
+                renderShop();
+                renderLedger();
+                renderDocs();
+                showDay(1); // 只要執行了這一行，LOADING 就會消失
+            } catch (e) {
+                console.error("本地渲染出錯:", e);
+            }
         
-            // 從 Google Sheets 抓取最新資料
-            if (GAS_URL.includes("exec")) {
-                console.log("正在從雲端同步資料...");
+            // --- 第二步：在背景嘗試同步雲端資料 ---
+            // 檢查 GAS_URL 是否已填寫且格式正確
+            if (typeof GAS_URL !== 'undefined' && GAS_URL.includes("https://script.google.com")) {
+                console.log("嘗試從雲端同步...");
+                
                 try {
-                    const response = await fetch(GAS_URL);
+                    // 設定 5 秒超時，防止網路太慢卡住
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
+                    const response = await fetch(GAS_URL, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+        
                     const cloudData = await response.json();
         
+                    // 如果雲端有資料，更新本地儲存並重新渲染
                     if (cloudData.shops && cloudData.shops.length > 0) {
                         shops = cloudData.shops;
                         localStorage.setItem('tr_shop_v10', JSON.stringify(shops));
@@ -384,13 +454,16 @@
                         localStorage.setItem('tr_exp_v10', JSON.stringify(exps));
                         renderLedger();
                     }
-                    console.log("雲端同步完成！");
+                    console.log("雲端同步完成");
                 } catch (e) {
-                    console.error("雲端同步失敗，使用本地紀錄", e);
+                    console.warn("雲端同步失敗或超時（這不影響本地使用）:", e.message);
                 }
+            } else {
+                console.log("未偵測到有效的 GAS_URL，僅使用本地模式");
             }
         }
-
+        
+        // 確保網頁載入完成後執行
         window.onload = initData;
     </script>
 </body>
