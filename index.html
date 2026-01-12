@@ -85,7 +85,9 @@
                     <input type="number" id="shop-qty" placeholder="數量" class="w-full border-b border-gray-100 py-2 outline-none">
                 </div>
                 <input type="text" id="shop-loc" placeholder="代購場所 (如: 大國藥妝)" class="w-full border-b border-gray-100 py-2 outline-none">
-                <label class="block border border-dashed border-gray-200 py-4 text-center rounded-2xl text-gray-400 text-[10px] cursor-pointer">
+                <!-- 在 shop-loc (代購場所) 欄位之後加入 -->
+<input type="text" id="shop-purchaser" placeholder="購買者 (如: 我, 老婆, 王小明)" class="w-full border-b border-gray-100 py-2 outline-none mb-2">
+				<label class="block border border-dashed border-gray-200 py-4 text-center rounded-2xl text-gray-400 text-[10px] cursor-pointer">
                     <i class="fas fa-camera mr-2"></i>上傳參考圖片
                     <input type="file" accept="image/*" class="hidden" onchange="processImage(this, 'shop')">
                 </label>
