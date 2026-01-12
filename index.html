@@ -347,39 +347,70 @@
         // 初始化
         showDay(1); renderShop(); renderLedger(); renderDocs();
         document.getElementById('exp-date').valueAsDate = new Date();
-		// 同步到 Google Sheets 的通用函數
-		async function syncToSheets(data) {
+		
+		// --- Google Sheets 串接設定 ---
+		const GAS_URL = "https://script.google.com/macros/s/AKfycbyGp06WIA8lErXczy52gkYg1AIayK5DsSzb-O_-JCT5xa282L-bEPNagHxxZap5Hip4/exec"; 
+		
+		async function syncToSheets(type, data) {
+			if (!GAS_URL.includes("exec")) return; // 如果沒設 URL 就不執行
 			try {
 				await fetch(GAS_URL, {
 					method: "POST",
-					body: JSON.stringify(data)
+					mode: 'no-cors', // 解決跨網域問題
+					body: JSON.stringify({ type: type, data: data })
 				});
-				console.log("Synced to Google Sheets");
-			} catch (error) {
-				console.error("Sync failed", error);
+				console.log(`Sync Success: ${type}`);
+			} catch (e) {
+				console.error("Sync Error", e);
 			}
 		}
 		
-		// 修改原有的 addShoppingItem 函數
+		// --- 修改後的儲存與刪除函數 ---
+		
+		// 1. 代購項目新增
 		function addShoppingItem() {
 			const name = document.getElementById('shop-name').value;
-			const loc = document.getElementById('shop-loc').value;
-			if(!name) return;
-		
-			const data = { id: Date.now(), name, loc, img: tempImg };
+			const loc = document.getElementById('shop-loc').value || '未定地點';
+			if(!name) return alert("請輸入名稱");
 			
-			// 1. 存到手機本地 (維持離線功能)
-			shops.unshift(data);
-			localStorage.setItem('tr_shop_v8', JSON.stringify(shops));
-			renderShop();
-		
-			// 2. 傳送到 Google Sheets
-			syncToSheets({ type: "shop", name, loc, img: tempImg });
-		
-			document.getElementById('shop-name').value = ''; tempImg = null;
+			const newItem = {
+				id: Date.now(),
+				name: name,
+				spec: document.getElementById('shop-spec').value,
+				qty: document.getElementById('shop-qty').value || 1,
+				loc: loc,
+				img: tempImg,
+				purchased: false,
+				price: ""
+			};
+			
+			shops.unshift(newItem);
+			saveAndRenderShop();
+			syncToSheets("shop", newItem); // 同步到 Sheets
+			
+			// 清空輸入
+			document.getElementById('shop-name').value = '';
+			document.getElementById('shop-spec').value = '';
+			document.getElementById('shop-qty').value = '';
+			tempImg = null;
 		}
 		
-		// 修改原有的 addExpense 函數
+		// 2. 代購狀態更新 (勾選與金額)
+		function togglePurchased(id) { 
+			const idx = shops.findIndex(s => s.id === id);
+			shops[idx].purchased = !shops[idx].purchased;
+			saveAndRenderShop();
+			syncToSheets("shop", shops[idx]); // 同步更新狀態到 Sheets
+		}
+		
+		function updatePrice(id, val) {
+			const idx = shops.findIndex(s => s.id === id);
+			shops[idx].price = val;
+			saveAndRenderShop();
+			syncToSheets("shop", shops[idx]); // 同步更新價格到 Sheets
+		}
+		
+		// 3. 記帳新增
 		function addExpense() {
 			const name = document.getElementById('exp-name').value;
 			const amt = document.getElementById('exp-amount').value;
@@ -387,17 +418,29 @@
 			const date = document.getElementById('exp-date').value;
 			if(!name || !amt) return;
 		
-			const data = { id: Date.now(), name, amt, method, date };
-		
-			// 1. 存到手機本地
-			exps.unshift(data);
-			localStorage.setItem('tr_exp_v8', JSON.stringify(exps));
+			const newExp = { id: Date.now(), name, amt, method, date };
+			exps.unshift(newExp);
+			localStorage.setItem('tr_exp_v9', JSON.stringify(exps));
 			renderLedger();
+			syncToSheets("exp", newExp); // 同步到 Sheets
+			
+			document.getElementById('exp-name').value = '';
+			document.getElementById('exp-amount').value = '';
+		}
 		
-			// 2. 傳送到 Google Sheets
-			syncToSheets({ type: "exp", name, amt, method, date });
+		// 4. 刪除同步
+		function delShop(id) {
+			const itemToDelete = shops.find(s => s.id === id);
+			shops = shops.filter(s => s.id !== id);
+			saveAndRenderShop();
+			syncToSheets("del_shop", { id: id }); // 從 Sheets 刪除
+		}
 		
-			document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
+		function delExp(id) {
+			exps = exps.filter(e => e.id !== id);
+			localStorage.setItem('tr_exp_v9', JSON.stringify(exps));
+			renderLedger();
+			syncToSheets("del_exp", { id: id }); // 從 Sheets 刪除
 		}
     </script>
 </body>
