@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Kansai Journey</title>
+    <title>2026 Kansai Handbook V3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -15,35 +15,33 @@
         .tab-content.active { display: block; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 時間軸：加大間距與字體 */
-        .timeline-item { position: relative; display: flex; padding-bottom: 2.5rem; cursor: pointer; }
+        /* 時間軸：大字體 */
+        .timeline-item { position: relative; display: flex; padding-bottom: 2.8rem; cursor: pointer; }
         .time-side { width: 75px; flex-shrink: 0; text-align: right; padding-right: 20px; font-size: 1.4rem; font-weight: 700; position: relative; color: #111; }
         .time-side::after { content: ''; position: absolute; right: -1px; top: 14px; width: 10px; height: 10px; background: white; border: 1px solid #ccc; border-radius: 50%; z-index: 10; }
         .timeline-line { position: absolute; left: 74.5px; top: 14px; bottom: 0; width: 1px; background: #e5e7eb; }
         .content-side { flex: 1; padding-left: 20px; }
 
-        /* 彈窗：強化層次感 */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 8vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 82vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); animation: fadeInUp 0.4s ease; }
+        /* 彈窗 */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 8vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 82vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: fadeInUp 0.4s ease; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 導覽列 */
+        /* 導覽 */
         .nav-active { color: var(--blue) !important; font-weight: 700; }
         .day-btn.active { color: #111; font-weight: 700; border-bottom: 3px solid #111; }
         
-        /* 文字大小微調 */
-        .text-header { font-size: 1.25rem; font-weight: 700; }
-        .text-desc { font-size: 0.95rem; color: var(--gray); }
-        .active-link { color: #2563eb; text-decoration: underline; word-break: break-all; font-weight: 500; }
+        .active-link { color: #2563eb; text-decoration: underline; word-break: break-all; font-weight: 500; font-size: 14px; }
+        .info-card { background: white; border: 1px solid #eee; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
     </style>
 </head>
 <body class="pb-24">
 
-    <!-- Loading -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[2000] flex items-center justify-center">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[3000] flex items-center justify-center">
         <div class="text-center">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-900 mx-auto"></div>
-            <p class="mt-4 text-xs text-gray-400 tracking-[0.3em] uppercase">Syncing Trip...</p>
+            <p class="mt-4 text-xs text-gray-400 tracking-[0.3em] uppercase">Syncing Cloud Data...</p>
         </div>
     </div>
 
@@ -52,7 +50,7 @@
         <h1 class="text-2xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
     </header>
 
-    <!-- 詳情彈窗 -->
+    <!-- 彈窗 -->
     <div id="infoModal" class="modal" onclick="closeModal()">
         <div class="modal-content p-8" onclick="event.stopPropagation()">
             <button class="absolute top-6 right-6 text-gray-400" onclick="closeModal()"><i class="fas fa-times text-2xl"></i></button>
@@ -60,14 +58,20 @@
         </div>
     </div>
 
-    <!-- 1. 行程 -->
+    <!-- 1. 行程 (含氣象) -->
     <div id="itinerary" class="tab-content active px-6">
-        <div class="flex justify-between mb-10 overflow-x-auto hide-scrollbar space-x-8 px-2 text-gray-300">
+        <div class="flex justify-between mb-8 overflow-x-auto hide-scrollbar space-x-6 px-2 text-gray-300">
             <button onclick="showDay(1)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">MON</span><span class="text-xl serif">2/2</span></button>
             <button onclick="showDay(2)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">TUE</span><span class="text-xl serif">2/3</span></button>
             <button onclick="showDay(3)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">WED</span><span class="text-xl serif">2/4</span></button>
             <button onclick="showDay(4)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">THU</span><span class="text-xl serif">2/5</span></button>
             <button onclick="showDay(5)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">FRI</span><span class="text-xl serif">2/6</span></button>
+        </div>
+
+        <!-- 氣象區塊 -->
+        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+            <h2 id="weather-city" class="text-xs font-bold tracking-widest uppercase mb-4 text-gray-400">Loading Weather...</h2>
+            <div id="hourly-weather" class="flex space-x-6 overflow-x-auto hide-scrollbar text-center"></div>
         </div>
 
         <div id="day-content" class="relative"></div>
@@ -76,7 +80,7 @@
     <!-- 2. 代購 -->
     <div id="shopping" class="tab-content p-6">
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
-            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest">Shopping Wish List</h3>
+            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">New Wish List</h3>
             <div class="space-y-4">
                 <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b py-3 outline-none text-base">
                 <div class="grid grid-cols-2 gap-4">
@@ -85,7 +89,7 @@
                 </div>
                 <input type="text" id="shop-loc" placeholder="代購場所" class="w-full border-b py-3 outline-none text-base">
                 <input type="text" id="shop-purchaser" placeholder="購買者" class="w-full border-b py-3 outline-none text-base">
-                <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold tracking-widest mt-4">ADD TO LIST</button>
+                <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold tracking-widest mt-4">ADD ITEM</button>
             </div>
         </div>
         <div id="shopping-list" class="space-y-4"></div>
@@ -93,12 +97,15 @@
 
     <!-- 3. 記帳 -->
     <div id="ledger" class="tab-content p-6">
+        <div id="total-amount" class="mb-6 text-center">
+            <p class="text-[10px] text-gray-400 tracking-widest uppercase">Total Expenses</p>
+            <div class="text-4xl font-bold serif text-red-600 mt-1">¥<span>0</span></div>
+        </div>
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
-            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">Expense Ledger</h3>
             <div class="grid grid-cols-1 gap-4">
-                <input type="text" id="exp-name" placeholder="消費項目" class="border-b py-3 outline-none text-base">
+                <input type="text" id="exp-name" placeholder="消費項目" class="border-b py-3 outline-none text-base font-medium">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-3 outline-none text-base">
+                    <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-3 outline-none text-base font-bold text-red-600">
                     <select id="exp-method" class="border-b py-3 bg-transparent outline-none text-base"><option>現金</option><option>刷卡</option><option>Suica</option></select>
                 </div>
                 <input type="date" id="exp-date" class="border-b py-3 outline-none text-base">
@@ -106,109 +113,138 @@
             <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold mt-6 tracking-widest">SAVE CASH</button>
         </div>
         <div id="expense-list" class="space-y-2"></div>
-        <div id="total-amount" class="mt-8 text-right font-light text-2xl">Total <span class="serif text-4xl font-bold ml-2">¥0</span></div>
     </div>
 
-    <!-- 4. 文件 -->
+    <!-- 4. DOCS (參考 PDF 資訊) -->
     <div id="tickets" class="tab-content p-6">
-        <div class="bg-slate-900 text-white p-8 rounded-3xl mb-8 shadow-xl">
-            <div class="text-[10px] opacity-40 tracking-[0.4em] mb-6 uppercase">Flight Summary</div>
+        <div class="info-card bg-slate-900 text-white border-none shadow-xl">
+            <h3 class="text-[10px] opacity-40 tracking-[0.4em] mb-6 uppercase">Flight Details</h3>
             <div class="flex justify-between items-center mb-6">
-                <div class="text-center"><div class="text-2xl font-bold serif">TPE</div><div class="text-xs opacity-50">09:20</div></div>
-                <i class="fas fa-plane text-indigo-400 text-xl mx-4"></i>
-                <div class="text-center"><div class="text-2xl font-bold serif">KIX</div><div class="text-xs opacity-50">12:50</div></div>
+                <div class="text-center"><div class="text-2xl font-bold serif">TPE</div><div class="text-xs opacity-50">09:20 AM</div></div>
+                <i class="fas fa-plane text-indigo-400 text-2xl mx-4"></i>
+                <div class="text-center"><div class="text-2xl font-bold serif">KIX</div><div class="text-xs opacity-50">12:50 PM</div></div>
             </div>
-            <p class="text-xs opacity-60 text-center tracking-widest">JX822 (2/2) / JX821 (2/6)</p>
+            <div class="text-[11px] opacity-60 space-y-1">
+                <p>2/2 去程：星宇 JX822 (Airbus A350)</p>
+                <p>2/6 回程：星宇 JX821 (12:20 PM - 02:35 PM)</p>
+            </div>
         </div>
-        <div id="doc-list" class="space-y-4"></div>
+
+        <h3 class="text-xs font-bold mb-4 text-gray-400 uppercase tracking-widest">Hotel Check-in</h3>
+        <div class="info-card">
+            <div class="flex justify-between items-start">
+                <div class="text-sm font-bold">大阪難波格利茲飯店<div class="text-xs font-normal text-gray-400 mt-1">2/2 入住 - 2/3 退房 (1晚)</div></div>
+                <button onclick="navigate('GRIDS PREMIUM HOTEL OSAKA NAMBA')" class="bg-gray-100 p-2 rounded-lg text-blue-600"><i class="fas fa-map-marked-alt"></i></button>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="flex justify-between items-start">
+                <div class="text-sm font-bold">阪急大阪龍仕柏飯店<div class="text-xs font-normal text-gray-400 mt-1">2/3 入住 - 2/6 退房 (3晚)</div></div>
+                <button onclick="navigate('Hotel Hankyu RESPIRE OSAKA')" class="bg-gray-100 p-2 rounded-lg text-blue-600"><i class="fas fa-map-marked-alt"></i></button>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl border border-dashed border-gray-200 mt-8">
+            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">My Documents</h3>
+            <input type="text" id="doc-name" placeholder="標題 (如: QR Code)" class="w-full border-b py-3 text-sm outline-none mb-4">
+            <label class="block border border-dashed border-gray-200 py-6 text-center rounded-2xl text-gray-400 text-xs cursor-pointer mb-4">
+                <i class="fas fa-cloud-upload-alt mr-2"></i>點擊選擇截圖
+                <input type="file" accept="image/*" class="hidden" onchange="processImage(this)">
+            </label>
+            <button onclick="addDoc()" class="w-full bg-slate-800 text-white py-4 rounded-full text-xs font-bold uppercase tracking-widest">Upload</button>
+        </div>
+        <div id="doc-list" class="space-y-4 mt-6"></div>
     </div>
 
     <!-- Nav -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-50 flex justify-around p-5 safe-area-bottom z-[1000]">
-        <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-300"><i class="fas fa-calendar-alt text-xl"></i><span class="text-[10px] mt-1">PLAN</span></button>
+        <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-300"><i class="fas fa-calendar-day text-xl"></i><span class="text-[10px] mt-1">PLAN</span></button>
         <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-shopping-cart text-xl"></i><span class="text-[10px] mt-1">SHOP</span></button>
-        <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-coins text-xl"></i><span class="text-[10px] mt-1">CASH</span></button>
-        <button onclick="switchTab('tickets')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-folder text-xl"></i><span class="text-[10px] mt-1">DOCS</span></button>
+        <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-wallet-barcode text-xl"></i><span class="text-[10px] mt-1">CASH</span></button>
+        <button onclick="switchTab('tickets')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-file-invoice text-xl"></i><span class="text-[10px] mt-1">DOCS</span></button>
     </nav>
 
     <script>
-        // --- 核心配置 ---
+        // --- 設定 (填寫你的 GAS URL) ---
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzEv6Bda3jKfHZNoV-duexjmNT47igMmz0s_Ldm7fRyR23TH619rqp3bzYd9jXUT0yO/exec"; 
 
-        // --- 完整行程數據 (從 PDF 提取) ---
+        // --- 行程數據 (PDF 完整解析) ---
         const travelData = {
-            1: { city: "Osaka", items: [
-                { t: "06:30", d: "機場捷運 (台北車站)", m: "計程車", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537", detail: { about: "機場捷運時刻表查詢於下方連結。", link: "https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php" }},
-                { t: "07:10", d: "桃園機場 第一航廈", m: "機捷", map: "https://maps.app.goo.gl/wEwQpbYUt7wF14Vf8", detail: { about: "抵達後星宇航空櫃台報到。完成後可至第二航廈入關享用貴賓室早餐。" }},
-                { t: "09:20", d: "星宇 JX822 起飛", m: "飛機", map: "https://maps.app.goo.gl/JLbrA5JiHkfwz835A", detail: { about: "飛往關西機場 (KIX)。", link: "https://www.howto-osaka.com/tc/access-timetable/" }},
-                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "電鐵", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", detail: { 
-                    about: "關西最大等級 OUTLET。飛機落地第一波血拼。面海設計可看跑道夕陽。",
-                    buy: "必買：西松屋、Onitsuka Tiger、Nike/Adidas、Coleman、Crocs。",
-                    link: "https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf"
-                }},
-                { t: "19:25", d: "難波格利茲飯店入住", m: "南海", map: "https://maps.app.goo.gl/BYcsfakHzt5pYJwi9", detail: { about: "搭乘南海特急 Rapi:t，需至窗口購票，不可直接刷卡上車。" }},
-                { t: "19:30", d: "🍱 晚餐：大起水產壽司", m: "徒步", map: "https://maps.app.goo.gl/4ZijhBKwhh4oWKmt6", detail: { buy: "必吃：黑鮪魚赤身/中腹、炙燒鮭魚肚、茶碗蒸。" }}
+            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/2 Mon | 臨空城 OUTLET", items: [
+                { t: "06:30", d: "機場捷運 (台北車站)", m: "交通", r: "時刻表查詢於詳情", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537", detail: { about: "時刻表網址：", link: "https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php" }},
+                { t: "09:20", d: "✈️ 星宇 JX822 起飛", m: "去程", r: "抵達關西 KIX 領行李", map: "https://maps.app.goo.gl/JLbrA5JiHkfwz835A", detail: { about: "報到後可至貴賓室享用早餐。" }},
+                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "購物", r: "關西最大等級 OUTLET", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", detail: { about: "特色：飛機一落地就能血拼。面海設計看夕陽。", buy: "必買：西松屋、Onitsuka Tiger、Nike、Coleman、Crocs。", link: "https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf" }},
+                { t: "19:30", d: "🍱 晚餐：大起水產壽司", m: "美食", r: "道頓堀人氣壽司", map: "https://maps.app.goo.gl/4ZijhBKwhh4oWKmt6", detail: { buy: "必吃：黑鮪魚赤身、炙燒鮭魚肚、海膽軍艦、茶碗蒸。" }}
             ]},
-            2: { city: "Kyoto", items: [
-                { t: "06:55", d: "蟹道樂東店集合", m: "集合", map: "https://maps.app.goo.gl/wGSZwfghYPAUpq727", detail: { about: "提早 15 分鐘出門。路上可買早餐帶上車。" }},
-                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", map: "https://maps.app.goo.gl/M1y4cYrxukxZw9AAA", detail: { about: "日本舟屋代表。可餵海鷗。冬季深藍海色很有秘境感。" }},
-                { t: "11:00", d: "🚠 天橋立傘松公園", m: "纜車", map: "https://maps.app.goo.gl/Q2G1kdLTxYXpqwgE6", detail: { about: "日本三景。重點在「倒頭栽」視角。", buy: "必吃：智惠團子、抹茶日式組合。" }},
-                { t: "14:45", d: "🏡 美山茅草屋之里", m: "巴士", map: "https://maps.app.goo.gl/TGn1n7bdZyGeb33a6", detail: { about: "原始茅草屋聚落。冬季雪景絕美。", buy: "推薦：手工米果、在地味噌、美山牛乳甜點。" }},
-                { t: "19:40", d: "梅田龍仕柏飯店入住", m: "地鐵", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA", detail: { about: "難波站搭乘御堂筋線至梅田站。" }}
+            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, title: "2/3 Tue | KKDAY 天橋立一日遊", items: [
+                { t: "06:55", d: "蟹道樂東店集合", m: "集合", map: "https://maps.app.goo.gl/wGSZwfghYPAUpq727", detail: { about: "行李寄放飯店，走到集合點約 15 分鐘。" }},
+                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", map: "https://maps.app.goo.gl/M1y4cYrxukxZw9AAA", detail: { about: "日本舟屋代表，可餵海鷗，很有日本秘境感。" }},
+                { t: "11:00", d: "🚠 天橋立傘松公園", m: "三景", map: "https://maps.app.goo.gl/Q2G1kdLTxYXpqwgE6", detail: { about: "重點視角：倒頭栽看龍宮。", buy: "必吃：智惠團子、抹茶糰子。" }},
+                { t: "14:45", d: "🏡 美山茅草屋之里", m: "景點", map: "https://maps.app.goo.gl/TGn1n7bdZyGeb33a6", detail: { buy: "推薦：手工米果、在地味噌、美山牛乳。" }}
             ]},
-            3: { city: "Kyoto", items: [
-                { t: "14:40", d: "⛩️ 貴船神社參拜", m: "神社", map: "https://maps.app.goo.gl/2SeLPrBbPPCxQV1p9", detail: { about: "夢幻石階、夜間點燈。必試水占卜。", buy: "祈求：姻緣、良緣、事業運。" }},
-                { t: "20:30", d: "🥩 晚餐：燒肉力丸", m: "吃到飽", map: "https://maps.app.goo.gl/mSRk6AkBcJV6ta7A", detail: { buy: "必吃：鹽蔥牛舌、和牛肩胛、烤蒜片白飯。" }}
+            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, title: "2/4 Wed | 貴船神社點燈", items: [
+                { t: "14:40", d: "⛩️ 貴船神社參拜", m: "夢幻", map: "https://maps.app.goo.gl/2SeLPrBbPPCxQV1p9", detail: { about: "燈籠石階、夜間點燈氣氛滿分。", buy: "體驗：水占卜(みずみくじ)。" }},
+                { t: "20:30", d: "🥩 晚餐：燒肉力丸", m: "美食", map: "https://maps.app.goo.gl/mSRk6AkBcJV6ta7A", detail: { buy: "必吃：鹽蔥牛舌、和牛肩胛、烤蒜片白飯。" }}
             ]},
-            4: { city: "Hyogo", items: [
-                { t: "09:30", d: "🔴 勝尾寺", m: "勝運", map: "https://maps.app.goo.gl/au2qs1mkMEeMs66b8", detail: { about: "遍地達摩壯觀美景。", link: "https://www.asoview.com/item/ticket/ticket0000039224/" }},
-                { t: "13:35", d: "🏯 姬路城", m: "世界遺產", map: "https://maps.app.goo.gl/GeWsaaQig2eerPim9", detail: { about: "白鷺城。日本第一名城。", buy: "名物：白色布丁、姬路關東煮。" }}
+            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, title: "2/5 Thu | 勝尾寺 ● 姬路城", items: [
+                { t: "09:30", d: "🔴 勝尾寺", m: "必去", map: "https://maps.app.goo.gl/au2qs1mkMEeMs66b8", detail: { about: "遍地達摩壯觀美景。", link: "https://www.asoview.com/item/ticket/ticket0000039224/" }},
+                { t: "13:35", d: "🏯 姬路城", m: "國寶", map: "https://maps.app.goo.gl/GeWsaaQig2eerPim9", detail: { about: "白鷺城。日本保留最完好城堡。", buy: "必吃：白色布丁、姬路關東煮。" }}
             ]},
-            5: { city: "Osaka", items: [
-                { t: "08:00", d: "飯店出發 (機場接送)", m: "KKDAY", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA", detail: { about: "預約 KKDAY 接送。" }},
-                { t: "12:20", d: "✈️ 關西機場起飛", m: "星宇", map: "https://maps.app.goo.gl/wEwQpbYUt7wF14Vf8", detail: { about: "搭乘 JX821 返台。" }}
+            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/6 Fri | 賦歸桃園", items: [
+                { t: "08:00", d: "🚐 機場接送", m: "飯店", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA" },
+                { t: "12:20", d: "✈️ 星宇 JX821 起飛", m: "返程", map: "https://maps.app.goo.gl/wEwQpbYUt7wF14Vf8" }
             ]}
         };
 
-        // --- 核心 JS 邏輯 ---
+        // --- 核心邏輯 ---
         let shops = JSON.parse(localStorage.getItem('tr_shop_v11')) || [];
         let exps = JSON.parse(localStorage.getItem('tr_exp_v11')) || [];
         let docs = JSON.parse(localStorage.getItem('tr_doc_v11')) || [];
-        let currentDay = 1;
+        let tempImg = null;
 
         async function initData() {
             try {
-                // 1. 立即渲染 (防卡死)
+                // 1. 本地優先
                 showDay(1); renderShop(); renderLedger(); renderDocs();
                 document.getElementById('loading-overlay').classList.add('hidden');
 
-                // 2. 異步抓雲端
+                // 2. 雲端同步
                 if (GAS_URL.startsWith("https")) {
                     const res = await fetch(GAS_URL, { signal: AbortSignal.timeout(5000) });
                     const cloud = await res.json();
-                    if (cloud.shops) { shops = cloud.shops; localStorage.setItem('tr_shop_v11', JSON.stringify(shops)); renderShop(); }
-                    if (cloud.exps) { exps = cloud.exps; localStorage.setItem('tr_exp_v11', JSON.stringify(exps)); renderLedger(); }
+                    if (cloud.shops && cloud.shops.length > 0) { shops = cloud.shops; localStorage.setItem('tr_shop_v11', JSON.stringify(shops)); renderShop(); }
+                    if (cloud.exps && cloud.exps.length > 0) { exps = cloud.exps; localStorage.setItem('tr_exp_v11', JSON.stringify(exps)); renderLedger(); }
                 }
             } catch (e) {
                 document.getElementById('loading-overlay').classList.add('hidden');
-                console.warn("Cloud Sync Fail");
+                console.warn("Offline mode active");
             }
         }
 
+        async function fetchWeather(day) {
+            try {
+                const c = travelData[day].coords;
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&hourly=temperature_2m,weathercode&timezone=Asia%2FTokyo&forecast_days=1`);
+                const data = await res.json();
+                document.getElementById('weather-city').innerText = travelData[day].city + " 24H 預報";
+                document.getElementById('hourly-weather').innerHTML = data.hourly.temperature_2m.slice(0, 24).filter((_, i) => i % 4 === 0).map((t, i) => `
+                    <div class="flex-1 min-w-[50px]"><div class="text-[9px] text-gray-300 uppercase mb-1">${i*4}:00</div><div class="text-lg mb-1">${data.hourly.weathercode[i*4] <= 3 ? '☀️' : '☁️'}</div><div class="text-sm font-bold serif">${Math.round(t)}°</div></div>
+                `).join('');
+            } catch (e) {}
+        }
+
         function showDay(day) {
-            currentDay = day;
             const data = travelData[day];
+            fetchWeather(day);
             let html = '<div class="timeline-line"></div>';
             data.items.forEach((item, idx) => {
                 html += `
                 <div class="timeline-item" onclick="openDetail(${day}, ${idx})">
-                    <div class="time-side serif">${item.t.split(':')[0]}<span class="text-[10px] text-gray-300">°</span></div>
+                    <div class="time-side serif">${item.t.split(':')[0]}<span class="text-[10px] text-gray-200">°</span></div>
                     <div class="content-side">
-                        <div class="text-[10px] font-bold text-gray-300 tracking-tighter uppercase mb-1">${item.type || item.m}</div>
-                        <h4 class="text-lg font-bold text-gray-800 leading-tight flex justify-between items-center">
-                            ${item.d}
-                            <i class="fas fa-location-arrow text-red-500 text-[12px] opacity-40"></i>
-                        </h4>
+                        <div class="text-[10px] font-bold text-gray-300 tracking-tighter uppercase mb-1">${item.m}</div>
+                        <h4 class="text-lg font-bold text-gray-800 leading-tight flex justify-between items-center">${item.d} <i class="fas fa-chevron-right text-[10px] opacity-20"></i></h4>
+                        <p class="text-sm text-gray-400 mt-1 truncate">${item.r || ''}</p>
                     </div>
                 </div>`;
             });
@@ -219,53 +255,44 @@
         function openDetail(day, idx) {
             const item = travelData[day].items[idx];
             const detail = item.detail || {};
-            let html = `
-                <div class="flex items-center gap-2 mb-2"><span class="text-[10px] bg-black text-white px-3 py-1 font-bold uppercase">${item.m}</span><span class="text-sm serif">${item.t}</span></div>
-                <h2 class="text-2xl font-bold serif leading-tight">${item.d}</h2>
-            `;
-            if (detail.about) html += `<div class="mt-4"><p class="text-base text-gray-600">${detail.about}</p></div>`;
-            if (detail.buy) html += `<div class="mt-4 p-4 bg-orange-50 border-l-4 border-orange-200 rounded-r-xl"><h5 class="text-xs font-bold text-orange-600 tracking-widest mb-1 uppercase">Must Eat / Buy</h5><p class="text-base text-orange-900">${detail.buy}</p></div>`;
-            if (detail.link) html += `<div class="mt-4"><h5 class="text-[10px] text-gray-400 uppercase mb-1">Related Links</h5><a href="${detail.link}" target="_blank" class="active-link text-sm">${detail.link}</a></div>`;
-            html += `<button onclick="window.open('${item.map}')" class="w-full bg-black text-white py-5 rounded-2xl text-sm font-bold mt-8 tracking-widest uppercase">Open Google Maps</button>`;
-            
-            document.getElementById('modal-body').innerHTML = html;
+            let h = `<div class="flex items-center gap-2 mb-2"><span class="text-[10px] bg-black text-white px-3 py-1 font-bold uppercase">${item.m}</span><span class="text-sm serif font-bold text-gray-300">${item.t}</span></div><h2 class="text-2xl font-bold serif leading-tight">${item.d}</h2>`;
+            if (detail.about) h += `<div class="mt-4"><p class="text-base text-gray-600">${detail.about}</p></div>`;
+            if (detail.buy) h += `<div class="mt-4 p-4 bg-orange-50 border-l-4 border-orange-200 rounded-r-xl"><h5 class="text-xs font-bold text-orange-600 tracking-widest mb-1 uppercase">Recommended</h5><p class="text-base text-orange-900 font-medium">${detail.buy}</p></div>`;
+            if (detail.link) h += `<div class="mt-4"><a href="${detail.link}" target="_blank" class="active-link">${detail.link}</a></div>`;
+            h += `<button onclick="window.open('${item.map}')" class="w-full bg-black text-white py-5 rounded-2xl text-sm font-bold mt-8 tracking-widest uppercase"><i class="fas fa-location-arrow mr-2"></i>導航至此</button>`;
+            document.getElementById('modal-body').innerHTML = h;
             document.getElementById('infoModal').style.display = 'block';
         }
 
-        function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
-
-        // --- 記帳、代購邏輯 (穩定版) ---
         function renderShop() {
             document.getElementById('shopping-list').innerHTML = shops.map(s => `
                 <div class="bg-white p-5 rounded-3xl border border-gray-100 flex flex-col gap-4 shadow-sm">
                     <div class="flex gap-4">
-                        <div class="w-16 h-16 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url(${s.img || ''})"></div>
+                        <div class="w-16 h-16 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url('${s.img || ''}')" onclick="viewImg('${s.img}')"></div>
                         <div class="flex-1 min-w-0">
-                            <div class="flex justify-between font-bold text-base"><span>${s.name}</span><button onclick="delShop(${s.id})" class="text-gray-200">✕</button></div>
+                            <div class="flex justify-between font-bold text-base"><span>${s.name}</span><button onclick="delShop(${s.id})">✕</button></div>
                             <div class="text-sm text-gray-400 mt-1">${s.spec || ''} | Qty: ${s.qty || 1}</div>
+                            <div class="flex gap-2 mt-2 font-bold"><span class="text-[10px] bg-indigo-50 text-indigo-400 px-2 py-1 rounded-full">${s.loc || '未定'}</span><span class="text-[10px] bg-gray-50 text-gray-400 px-2 py-1 rounded-full">${s.purchaser || '我'}</span></div>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center border-t border-gray-50 pt-3">
-                        <span class="text-xs font-bold bg-indigo-50 text-indigo-400 px-3 py-1 rounded-full">${s.loc || '未定'}</span>
-                        <div class="text-base font-bold serif text-red-600">¥ ${s.price || '--'}</div>
-                    </div>
+                    <div class="flex justify-between items-center border-t border-gray-50 pt-3"><div class="text-base font-bold serif text-red-600">¥ ${s.price || '--'}</div></div>
                 </div>`).join('');
         }
 
         function addShoppingItem() {
             const name = document.getElementById('shop-name').value;
             if(!name) return;
-            const item = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, purchased: false };
+            const item = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, img: tempImg };
             shops.unshift(item); localStorage.setItem('tr_shop_v11', JSON.stringify(shops));
             renderShop(); syncToSheets("shop", item);
             document.getElementById('shop-name').value = '';
         }
 
-        function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v11', JSON.stringify(shops)); renderShop(); syncToSheets("del_shop", {id}); }
-
         function addExpense() {
-            const e = { id: Date.now(), name: document.getElementById('exp-name').value, amt: document.getElementById('exp-amount').value, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value };
-            if(!e.name || !e.amt) return;
+            const name = document.getElementById('exp-name').value;
+            const amt = document.getElementById('exp-amount').value;
+            if(!name || !amt) return;
+            const e = { id: Date.now(), name, amt, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value };
             exps.unshift(e); localStorage.setItem('tr_exp_v11', JSON.stringify(exps));
             renderLedger(); syncToSheets("exp", e);
             document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
@@ -275,29 +302,45 @@
             let total = 0;
             document.getElementById('expense-list').innerHTML = exps.map(e => {
                 total += Number(e.amt);
-                return `<div class="bg-white p-4 border-b flex justify-between items-center"><div class="text-sm font-bold">${e.name}<div class="text-[10px] text-gray-300">${e.method} | ${e.date}</div></div><div class="flex gap-4 items-center font-bold text-base serif">¥${e.amt}<button onclick="delExp(${e.id})" class="text-gray-200">✕</button></div></div>`;
+                return `<div class="bg-white p-4 border-b flex justify-between items-center text-sm"><div><div class="font-bold">${e.name}</div><div class="text-[10px] text-gray-300">${e.method} | ${e.date}</div></div><div class="flex gap-4 items-center font-bold text-lg serif text-red-600">¥${e.amt}<button onclick="delExp(${e.id})" class="text-gray-200">✕</button></div></div>`;
             }).join('');
-            document.querySelector('#total-amount span').innerText = `¥${total}`;
+            document.querySelector('#total-amount span').innerText = total;
         }
-        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v11', JSON.stringify(exps)); renderLedger(); syncToSheets("del_exp", {id}); }
+
+        function addDoc() {
+            const name = document.getElementById('doc-name').value;
+            if(!name || !tempImg) return;
+            docs.unshift({ id: Date.now(), name, img: tempImg }); localStorage.setItem('tr_doc_v11', JSON.stringify(docs));
+            renderDocs(); document.getElementById('doc-name').value = '';
+        }
 
         function renderDocs() {
-            document.getElementById('doc-list').innerHTML = docs.map(d => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-sm font-bold"><span>${d.name}</span><button onclick="viewImg('${d.img}')" class="text-blue-500">VIEW</button></div>`).join('');
+            document.getElementById('doc-list').innerHTML = docs.map(d => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-sm font-bold shadow-sm"><span>${d.name}</span><button onclick="viewImg('${d.img}')" class="text-blue-500 bg-blue-50 px-3 py-1 rounded-lg">VIEW</button></div>`).join('');
         }
 
-        async function syncToSheets(type, data) {
-            if (!GAS_URL.startsWith("https")) return;
-            fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data }) });
+        function processImage(input) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 400; canvas.height = (img.height/img.width)*400;
+                    canvas.getContext('2d').drawImage(img, 0, 0, 400, canvas.height);
+                    tempImg = canvas.toDataURL('image/jpeg', 0.4);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
         }
 
-        function switchTab(t) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(t).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-gray-300'));
-            event.currentTarget.classList.remove('text-gray-300');
-        }
+        function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v11', JSON.stringify(shops)); renderShop(); }
+        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v11', JSON.stringify(exps)); renderLedger(); }
+        function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
+        function switchTab(t) { document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); document.getElementById(t).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-gray-300')); event.currentTarget.classList.remove('text-gray-300'); }
+        function viewImg(s) { if(!s) return; const w = window.open(""); w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;"><img src="${s}" style="max-width:100%;height:auto;"></body>`); }
+        function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
 
-        function viewImg(s) { if(!s) return; const w = window.open(""); w.document.write(`<img src="${s}" style="width:100%">`); }
+        async function syncToSheets(type, data) { if (GAS_URL.startsWith("https")) { fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data }) }); } }
 
         window.onload = initData;
     </script>
