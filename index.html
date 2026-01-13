@@ -3,36 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Kansai Handbook V3</title>
+    <title>2026 Kansai Premium Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #fcfaf7; --main: #2a2a2a; --blue: #1a2a6c; --gray: #71717a; }
+        :root { --bg: #fcfaf7; --main: #2a2a2a; --blue: #1a2a6c; --orange: #f97316; }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg); color: var(--main); line-height: 1.6; font-size: 16px; }
         .serif { font-family: 'Playfair Display', serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* 時間軸：大字體 */
+        /* 時間軸 */
         .timeline-item { position: relative; display: flex; padding-bottom: 2.8rem; cursor: pointer; }
         .time-side { width: 75px; flex-shrink: 0; text-align: right; padding-right: 20px; font-size: 1.4rem; font-weight: 700; position: relative; color: #111; }
         .time-side::after { content: ''; position: absolute; right: -1px; top: 14px; width: 10px; height: 10px; background: white; border: 1px solid #ccc; border-radius: 50%; z-index: 10; }
         .timeline-line { position: absolute; left: 74.5px; top: 14px; bottom: 0; width: 1px; background: #e5e7eb; }
         .content-side { flex: 1; padding-left: 20px; }
 
-        /* 彈窗 */
-        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 8vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 82vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.5); animation: fadeInUp 0.4s ease; }
+        /* 彈窗細節 */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 5vh auto; width: 92%; max-width: 450px; border-radius: 28px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3); animation: fadeInUp 0.4s ease; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 導覽 */
         .nav-active { color: var(--blue) !important; font-weight: 700; }
         .day-btn.active { color: #111; font-weight: 700; border-bottom: 3px solid #111; }
-        
-        .active-link { color: #2563eb; text-decoration: underline; word-break: break-all; font-weight: 500; font-size: 14px; }
-        .info-card { background: white; border: 1px solid #eee; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .weather-hour { min-width: 60px; flex-shrink: 0; }
     </style>
 </head>
 <body class="pb-24">
@@ -41,46 +38,46 @@
     <div id="loading-overlay" class="fixed inset-0 bg-white z-[3000] flex items-center justify-center">
         <div class="text-center">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-900 mx-auto"></div>
-            <p class="mt-4 text-xs text-gray-400 tracking-[0.3em] uppercase">Syncing Cloud Data...</p>
+            <p class="mt-4 text-xs text-gray-400 tracking-[0.3em] uppercase">Loading Guide...</p>
         </div>
     </div>
 
     <header class="p-8 text-center">
-        <div class="text-[10px] text-gray-400 tracking-[0.4em] mb-2 font-light uppercase">Osaka Trip Planner</div>
+        <div class="text-[10px] text-gray-400 tracking-[0.4em] mb-2 font-light uppercase">Premium Osaka Planner</div>
         <h1 class="text-2xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
     </header>
 
-    <!-- 彈窗 -->
+    <!-- Lightbox 詳情 -->
     <div id="infoModal" class="modal" onclick="closeModal()">
-        <div class="modal-content p-8" onclick="event.stopPropagation()">
-            <button class="absolute top-6 right-6 text-gray-400" onclick="closeModal()"><i class="fas fa-times text-2xl"></i></button>
-            <div id="modal-body" class="space-y-6"></div>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="absolute top-6 right-6 text-white bg-black/20 w-10 h-10 rounded-full z-10" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <div id="modal-image" class="w-full h-56 bg-cover bg-center"></div>
+            <div class="p-8 space-y-6" id="modal-body"></div>
         </div>
     </div>
 
-    <!-- 1. 行程 (含氣象) -->
+    <!-- 1. PLAN 行程 -->
     <div id="itinerary" class="tab-content active px-6">
         <div class="flex justify-between mb-8 overflow-x-auto hide-scrollbar space-x-6 px-2 text-gray-300">
-            <button onclick="showDay(1)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">MON</span><span class="text-xl serif">2/2</span></button>
-            <button onclick="showDay(2)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">TUE</span><span class="text-xl serif">2/3</span></button>
-            <button onclick="showDay(3)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">WED</span><span class="text-xl serif">2/4</span></button>
-            <button onclick="showDay(4)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">THU</span><span class="text-xl serif">2/5</span></button>
-            <button onclick="showDay(5)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block">FRI</span><span class="text-xl serif">2/6</span></button>
+            <button onclick="showDay(1)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">MON</span><span class="text-xl serif">2/2</span></button>
+            <button onclick="showDay(2)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">TUE</span><span class="text-xl serif">2/3</span></button>
+            <button onclick="showDay(3)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">WED</span><span class="text-xl serif">2/4</span></button>
+            <button onclick="showDay(4)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">THU</span><span class="text-xl serif">2/5</span></button>
+            <button onclick="showDay(5)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">FRI</span><span class="text-xl serif">2/6</span></button>
         </div>
 
-        <!-- 氣象區塊 -->
-        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
-            <h2 id="weather-city" class="text-xs font-bold tracking-widest uppercase mb-4 text-gray-400">Loading Weather...</h2>
-            <div id="hourly-weather" class="flex space-x-6 overflow-x-auto hide-scrollbar text-center"></div>
+        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+            <h2 id="weather-city" class="text-[10px] font-bold tracking-widest uppercase mb-4 text-gray-400">Weather Hourly</h2>
+            <div id="hourly-weather" class="flex space-x-2 overflow-x-auto hide-scrollbar text-center"></div>
         </div>
 
         <div id="day-content" class="relative"></div>
     </div>
 
-    <!-- 2. 代購 -->
+    <!-- 2. SHOP 代購 -->
     <div id="shopping" class="tab-content p-6">
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
-            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">New Wish List</h3>
+            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">Add New Wish</h3>
             <div class="space-y-4">
                 <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b py-3 outline-none text-base">
                 <div class="grid grid-cols-2 gap-4">
@@ -89,150 +86,145 @@
                 </div>
                 <input type="text" id="shop-loc" placeholder="代購場所" class="w-full border-b py-3 outline-none text-base">
                 <input type="text" id="shop-purchaser" placeholder="購買者" class="w-full border-b py-3 outline-none text-base">
-                <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold tracking-widest mt-4">ADD ITEM</button>
+                <label class="block border border-dashed border-gray-200 py-4 text-center rounded-2xl text-gray-400 text-xs cursor-pointer">
+                    <span id="shop-img-status"><i class="fas fa-camera mr-2"></i>上傳商品圖片</span>
+                    <input type="file" accept="image/*" class="hidden" onchange="processImage(this)">
+                </label>
+                <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold tracking-widest">SAVE TO LIST</button>
             </div>
         </div>
         <div id="shopping-list" class="space-y-4"></div>
     </div>
 
-    <!-- 3. 記帳 -->
+    <!-- 3. CASH 記帳 -->
     <div id="ledger" class="tab-content p-6">
-        <div id="total-amount" class="mb-6 text-center">
-            <p class="text-[10px] text-gray-400 tracking-widest uppercase">Total Expenses</p>
-            <div class="text-4xl font-bold serif text-red-600 mt-1">¥<span>0</span></div>
+        <div id="total-amount" class="mb-8 text-center">
+            <p class="text-[10px] text-gray-400 tracking-widest uppercase"><i class="fas fa-wallet mr-1"></i> Total Expenses</p>
+            <div class="text-5xl font-bold serif text-red-600 mt-1">¥<span>0</span></div>
         </div>
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6">
             <div class="grid grid-cols-1 gap-4">
-                <input type="text" id="exp-name" placeholder="消費項目" class="border-b py-3 outline-none text-base font-medium">
+                <input type="text" id="exp-name" placeholder="消費項目" class="border-b py-3 outline-none text-base">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-3 outline-none text-base font-bold text-red-600">
-                    <select id="exp-method" class="border-b py-3 bg-transparent outline-none text-base"><option>現金</option><option>刷卡</option><option>Suica</option></select>
+                    <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-3 outline-none text-base font-bold">
+                    <select id="exp-method" class="border-b py-3 bg-transparent outline-none text-sm"><option>現金</option><option>刷卡</option><option>Suica</option></select>
                 </div>
-                <input type="date" id="exp-date" class="border-b py-3 outline-none text-base">
+                <input type="date" id="exp-date" class="border-b py-3 outline-none text-sm">
             </div>
-            <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold mt-6 tracking-widest">SAVE CASH</button>
+            <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full text-sm font-bold mt-6 tracking-widest uppercase">Add Expense</button>
         </div>
         <div id="expense-list" class="space-y-2"></div>
     </div>
 
-    <!-- 4. DOCS (參考 PDF 資訊) -->
+    <!-- 4. DOCS 文件 -->
     <div id="tickets" class="tab-content p-6">
-        <div class="info-card bg-slate-900 text-white border-none shadow-xl">
+        <div class="bg-slate-900 text-white p-8 rounded-3xl mb-8 shadow-xl">
             <h3 class="text-[10px] opacity-40 tracking-[0.4em] mb-6 uppercase">Flight Details</h3>
             <div class="flex justify-between items-center mb-6">
                 <div class="text-center"><div class="text-2xl font-bold serif">TPE</div><div class="text-xs opacity-50">09:20 AM</div></div>
-                <i class="fas fa-plane text-indigo-400 text-2xl mx-4"></i>
+                <i class="fas fa-plane-departure text-indigo-400 text-2xl mx-4"></i>
                 <div class="text-center"><div class="text-2xl font-bold serif">KIX</div><div class="text-xs opacity-50">12:50 PM</div></div>
             </div>
-            <div class="text-[11px] opacity-60 space-y-1">
-                <p>2/2 去程：星宇 JX822 (Airbus A350)</p>
+            <div class="text-xs opacity-60 space-y-2 border-t border-white/10 pt-4">
+                <p>2/2 去程：星宇 JX822 (A350-900)</p>
                 <p>2/6 回程：星宇 JX821 (12:20 PM - 02:35 PM)</p>
             </div>
         </div>
 
-        <h3 class="text-xs font-bold mb-4 text-gray-400 uppercase tracking-widest">Hotel Check-in</h3>
-        <div class="info-card">
-            <div class="flex justify-between items-start">
-                <div class="text-sm font-bold">大阪難波格利茲飯店<div class="text-xs font-normal text-gray-400 mt-1">2/2 入住 - 2/3 退房 (1晚)</div></div>
-                <button onclick="navigate('GRIDS PREMIUM HOTEL OSAKA NAMBA')" class="bg-gray-100 p-2 rounded-lg text-blue-600"><i class="fas fa-map-marked-alt"></i></button>
+        <h3 class="text-xs font-bold mb-4 text-gray-400 uppercase tracking-widest ml-2">Hotel Navigations</h3>
+        <div class="space-y-4 mb-8">
+            <div class="bg-white p-5 rounded-2xl border flex justify-between items-center">
+                <div><div class="text-sm font-bold">難波格利茲飯店</div><div class="text-[10px] text-gray-400">2/2 - 2/3 (1晚)</div></div>
+                <button onclick="navigate('GRIDS PREMIUM HOTEL OSAKA NAMBA')" class="text-blue-500 bg-blue-50 w-10 h-10 rounded-full"><i class="fas fa-map-marked-alt"></i></button>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border flex justify-between items-center">
+                <div><div class="text-sm font-bold">梅田龍仕柏飯店</div><div class="text-[10px] text-gray-400">2/3 - 2/6 (3晚)</div></div>
+                <button onclick="navigate('Hotel Hankyu RESPIRE OSAKA')" class="text-blue-500 bg-blue-50 w-10 h-10 rounded-full"><i class="fas fa-map-marked-alt"></i></button>
             </div>
         </div>
-        <div class="info-card">
-            <div class="flex justify-between items-start">
-                <div class="text-sm font-bold">阪急大阪龍仕柏飯店<div class="text-xs font-normal text-gray-400 mt-1">2/3 入住 - 2/6 退房 (3晚)</div></div>
-                <button onclick="navigate('Hotel Hankyu RESPIRE OSAKA')" class="bg-gray-100 p-2 rounded-lg text-blue-600"><i class="fas fa-map-marked-alt"></i></button>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-3xl border border-dashed border-gray-200 mt-8">
-            <h3 class="text-xs font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">My Documents</h3>
-            <input type="text" id="doc-name" placeholder="標題 (如: QR Code)" class="w-full border-b py-3 text-sm outline-none mb-4">
-            <label class="block border border-dashed border-gray-200 py-6 text-center rounded-2xl text-gray-400 text-xs cursor-pointer mb-4">
-                <i class="fas fa-cloud-upload-alt mr-2"></i>點擊選擇截圖
-                <input type="file" accept="image/*" class="hidden" onchange="processImage(this)">
-            </label>
-            <button onclick="addDoc()" class="w-full bg-slate-800 text-white py-4 rounded-full text-xs font-bold uppercase tracking-widest">Upload</button>
-        </div>
-        <div id="doc-list" class="space-y-4 mt-6"></div>
+        <div id="doc-list" class="space-y-3 mt-6"></div>
     </div>
 
     <!-- Nav -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-50 flex justify-around p-5 safe-area-bottom z-[1000]">
-        <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-300"><i class="fas fa-calendar-day text-xl"></i><span class="text-[10px] mt-1">PLAN</span></button>
-        <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-shopping-cart text-xl"></i><span class="text-[10px] mt-1">SHOP</span></button>
-        <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-wallet-barcode text-xl"></i><span class="text-[10px] mt-1">CASH</span></button>
-        <button onclick="switchTab('tickets')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-file-invoice text-xl"></i><span class="text-[10px] mt-1">DOCS</span></button>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-100 flex justify-around p-5 safe-area-bottom z-[1000]">
+        <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-300"><i class="fas fa-calendar-check text-xl"></i><span class="text-[9px] mt-1">PLAN</span></button>
+        <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-shopping-bag text-xl"></i><span class="text-[9px] mt-1">SHOP</span></button>
+        <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-wallet text-xl"></i><span class="text-[9px] mt-1">CASH</span></button>
+        <button onclick="switchTab('tickets')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-folder-open text-xl"></i><span class="text-[9px] mt-1">DOCS</span></button>
     </nav>
 
     <script>
         // --- 設定 (填寫你的 GAS URL) ---
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzEv6Bda3jKfHZNoV-duexjmNT47igMmz0s_Ldm7fRyR23TH619rqp3bzYd9jXUT0yO/exec"; 
+        const GAS_URL = "https://script.google.com/macros/library/d/1WzmOMqQn2y536vqbOTEFaeHIq8elZY2vuKODsQNarZeQPI3Q0rx8F6ON/7"; 
 
-        // --- 行程數據 (PDF 完整解析) ---
+        // --- 完整行程數據庫 (景點豐富化) ---
         const travelData = {
-            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/2 Mon | 臨空城 OUTLET", items: [
-                { t: "06:30", d: "機場捷運 (台北車站)", m: "交通", r: "時刻表查詢於詳情", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537", detail: { about: "時刻表網址：", link: "https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php" }},
-                { t: "09:20", d: "✈️ 星宇 JX822 起飛", m: "去程", r: "抵達關西 KIX 領行李", map: "https://maps.app.goo.gl/JLbrA5JiHkfwz835A", detail: { about: "報到後可至貴賓室享用早餐。" }},
-                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "購物", r: "關西最大等級 OUTLET", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", detail: { about: "特色：飛機一落地就能血拼。面海設計看夕陽。", buy: "必買：西松屋、Onitsuka Tiger、Nike、Coleman、Crocs。", link: "https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf" }},
-                { t: "19:30", d: "🍱 晚餐：大起水產壽司", m: "美食", r: "道頓堀人氣壽司", map: "https://maps.app.goo.gl/4ZijhBKwhh4oWKmt6", detail: { buy: "必吃：黑鮪魚赤身、炙燒鮭魚肚、海膽軍艦、茶碗蒸。" }}
+            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, items: [
+                { t: "06:30", d: "機場捷運 (台北車站)", m: "交通", r: "搭乘計程車前往北車轉乘機捷。", img: "https://images.unsplash.com/photo-1590674899484-d5640e854abe?q=80&w=500&auto=format", detail: { about: "機場捷運直達車約36分鐘可抵達第一航廈。" }},
+                { t: "09:20", d: "星宇航空 JX822 起飛", m: "去程", r: "前往關西機場 (KIX)。", img: "https://images.unsplash.com/photo-1436491865332-7a61a109c0f3?q=80&w=500&auto=format", detail: { about: "星宇 A350 客機，報到後可至貴賓室享用早點。" }},
+                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "購物", r: "關西最大規模 Outlet。", img: "https://www.premiumoutlets.co.jp/en/rinku/common/img/ogp.jpg", detail: { 
+                    about: "位於機場對岸，建築充滿美國查爾斯頓港口風格。擁有250間品牌，是關西落地後血拼的首選。",
+                    buy: "必逛：Onitsuka Tiger (限定色)、西松屋 (童裝)、Coleman (戶外用品)。"
+                }},
+                { t: "19:30", d: "🍱 晚餐：大起水產壽司", m: "美食", r: "道頓堀人氣壽司店。", img: "https://lh3.googleusercontent.com/p/AF1QipN3X-Xk_q2_83x-k699PshjYfM-N6V8V8L0G-5U=s1360-w1360-h1020", detail: { about: "以新鮮直送聞名，價格親民。黑鮪魚中腹與炙燒鮭魚是必點招牌。" }},
+                { t: "22:30", d: "🍜 消夜：一蘭拉麵", m: "美食", r: "道頓堀別館或御堂筋店。", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?q=80&w=500&auto=format", detail: { about: "日本代表性拉麵，客製化的湯頭與秘製紅辣粉。" }}
             ]},
-            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, title: "2/3 Tue | KKDAY 天橋立一日遊", items: [
-                { t: "06:55", d: "蟹道樂東店集合", m: "集合", map: "https://maps.app.goo.gl/wGSZwfghYPAUpq727", detail: { about: "行李寄放飯店，走到集合點約 15 分鐘。" }},
-                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", map: "https://maps.app.goo.gl/M1y4cYrxukxZw9AAA", detail: { about: "日本舟屋代表，可餵海鷗，很有日本秘境感。" }},
-                { t: "11:00", d: "🚠 天橋立傘松公園", m: "三景", map: "https://maps.app.goo.gl/Q2G1kdLTxYXpqwgE6", detail: { about: "重點視角：倒頭栽看龍宮。", buy: "必吃：智惠團子、抹茶糰子。" }},
-                { t: "14:45", d: "🏡 美山茅草屋之里", m: "景點", map: "https://maps.app.goo.gl/TGn1n7bdZyGeb33a6", detail: { buy: "推薦：手工米果、在地味噌、美山牛乳。" }}
+            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, items: [
+                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", r: "欣賞獨特的舟屋建築。", img: "https://images.unsplash.com/photo-1542931287-023b922fa89b?q=80&w=500&auto=format", detail: { about: "伊根舟屋是日本最美村莊之一，建築與海相鄰。遊覽船提供餵海鷗體驗，可從海上飽覽村落美景。" }},
+                { t: "11:00", d: "🚠 天橋立傘松公園", m: "三景", r: "搭纜車看「倒頭栽」。", img: "https://images.unsplash.com/photo-1570191935694-8116262453c5?q=80&w=500&auto=format", detail: { about: "日本三景之一。從跨下往後看的奇景使沙洲像飛向天空的青龍。", buy: "必吃：智惠團子 (祈求智慧)。" }},
+                { t: "14:45", d: "🏡 美山茅草屋之里", m: "景點", r: "京都版合掌村。", img: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=500&auto=format", detail: { about: "保留完整的江戶時代農村景觀，冬季雪景宛如童話世界。", buy: "推薦：美山牛乳製成的濃厚甜點、在地味噌。" }}
             ]},
-            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, title: "2/4 Wed | 貴船神社點燈", items: [
-                { t: "14:40", d: "⛩️ 貴船神社參拜", m: "夢幻", map: "https://maps.app.goo.gl/2SeLPrBbPPCxQV1p9", detail: { about: "燈籠石階、夜間點燈氣氛滿分。", buy: "體驗：水占卜(みずみくじ)。" }},
-                { t: "20:30", d: "🥩 晚餐：燒肉力丸", m: "美食", map: "https://maps.app.goo.gl/mSRk6AkBcJV6ta7A", detail: { buy: "必吃：鹽蔥牛舌、和牛肩胛、烤蒜片白飯。" }}
+            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, items: [
+                { t: "14:40", d: "⛩️ 貴船神社", m: "夢幻", r: "水神總本宮與燈籠石階。", img: "https://images.unsplash.com/photo-1583002677234-927702891395?q=80&w=500&auto=format", detail: { about: "最具代表性的是紅燈籠參道，冬季夜間點燈氣氛絕佳。", buy: "體驗：水占卜 (將籤紙放入水中顯影)。" }},
+                { t: "20:30", d: "🥩 晚餐：燒肉力丸", m: "美食", r: "大阪人氣放題燒肉。", img: "https://lh3.googleusercontent.com/p/AF1QipN9f3f4iG3O3k-UqP1n2h8_TfX_h9xY_k_I5hU=s1360-w1360-h1020", detail: { about: "CP值極高的燒肉吃到飽，已預約梅田東通店。", buy: "推薦：鹽蔥牛舌、和牛肩胛、烤蒜片白飯。" }}
             ]},
-            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, title: "2/5 Thu | 勝尾寺 ● 姬路城", items: [
-                { t: "09:30", d: "🔴 勝尾寺", m: "必去", map: "https://maps.app.goo.gl/au2qs1mkMEeMs66b8", detail: { about: "遍地達摩壯觀美景。", link: "https://www.asoview.com/item/ticket/ticket0000039224/" }},
-                { t: "13:35", d: "🏯 姬路城", m: "國寶", map: "https://maps.app.goo.gl/GeWsaaQig2eerPim9", detail: { about: "白鷺城。日本保留最完好城堡。", buy: "必吃：白色布丁、姬路關東煮。" }}
+            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, items: [
+                { t: "09:30", d: "🔴 勝尾寺", m: "必訪", r: "祈求勝運的達摩寺。", img: "https://lh3.googleusercontent.com/p/AF1QipNXF-n3yG3v7L-UqP1_U8_O3_I_f_V_l_I_G_U=s1360-w1360-h1020", detail: { about: "遍地皆是信眾還願的達摩不倒翁，是祈求事業與學業順利的首選。" }},
+                { t: "13:35", d: "🏯 姬路城", m: "國寶", r: "世界遺產「白鷺城」。", img: "https://images.unsplash.com/photo-1528164344705-47542687990d?q=80&w=500&auto=format", detail: { about: "日本現存最完好的國寶級城堡，純白木構造外觀極其優雅。", buy: "名物：姬路城白色布丁、姬路關東煮。" }}
             ]},
-            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/6 Fri | 賦歸桃園", items: [
-                { t: "08:00", d: "🚐 機場接送", m: "飯店", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA" },
-                { t: "12:20", d: "✈️ 星宇 JX821 起飛", m: "返程", map: "https://maps.app.goo.gl/wEwQpbYUt7wF14Vf8" }
+            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, items: [
+                { t: "08:00", d: "🚐 機場接送", m: "返程", r: "前往關西機場。", img: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=500&auto=format", detail: { about: "提早 3 小時抵達機場，可做最後的免稅採買。" }}
             ]}
         };
 
-        // --- 核心邏輯 ---
-        let shops = JSON.parse(localStorage.getItem('tr_shop_v11')) || [];
-        let exps = JSON.parse(localStorage.getItem('tr_exp_v11')) || [];
-        let docs = JSON.parse(localStorage.getItem('tr_doc_v11')) || [];
+        // --- 全域狀態 ---
+        let shops = JSON.parse(localStorage.getItem('tr_shop_v12')) || [];
+        let exps = JSON.parse(localStorage.getItem('tr_exp_v12')) || [];
+        let docs = JSON.parse(localStorage.getItem('tr_doc_v12')) || [];
         let tempImg = null;
 
+        // --- 初始化邏輯 (修正同步) ---
         async function initData() {
-            try {
-                // 1. 本地優先
-                showDay(1); renderShop(); renderLedger(); renderDocs();
-                document.getElementById('loading-overlay').classList.add('hidden');
-
-                // 2. 雲端同步
-                if (GAS_URL.startsWith("https")) {
-                    const res = await fetch(GAS_URL, { signal: AbortSignal.timeout(5000) });
+            renderShop(); renderLedger(); renderDocs(); showDay(1);
+            document.getElementById('loading-overlay').classList.add('hidden');
+            
+            if (GAS_URL.startsWith("https")) {
+                try {
+                    const res = await fetch(GAS_URL, { signal: AbortSignal.timeout(6000) });
                     const cloud = await res.json();
-                    if (cloud.shops && cloud.shops.length > 0) { shops = cloud.shops; localStorage.setItem('tr_shop_v11', JSON.stringify(shops)); renderShop(); }
-                    if (cloud.exps && cloud.exps.length > 0) { exps = cloud.exps; localStorage.setItem('tr_exp_v11', JSON.stringify(exps)); renderLedger(); }
-                }
-            } catch (e) {
-                document.getElementById('loading-overlay').classList.add('hidden');
-                console.warn("Offline mode active");
+                    if (cloud.shops) { shops = cloud.shops; localStorage.setItem('tr_shop_v12', JSON.stringify(shops)); renderShop(); }
+                    if (cloud.exps) { exps = cloud.exps; localStorage.setItem('tr_exp_v12', JSON.stringify(exps)); renderLedger(); }
+                } catch (e) { console.warn("Cloud Sync Timeout"); }
             }
         }
 
+        // --- 每小時氣象 ---
         async function fetchWeather(day) {
             try {
                 const c = travelData[day].coords;
                 const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&hourly=temperature_2m,weathercode&timezone=Asia%2FTokyo&forecast_days=1`);
                 const data = await res.json();
-                document.getElementById('weather-city').innerText = travelData[day].city + " 24H 預報";
-                document.getElementById('hourly-weather').innerHTML = data.hourly.temperature_2m.slice(0, 24).filter((_, i) => i % 4 === 0).map((t, i) => `
-                    <div class="flex-1 min-w-[50px]"><div class="text-[9px] text-gray-300 uppercase mb-1">${i*4}:00</div><div class="text-lg mb-1">${data.hourly.weathercode[i*4] <= 3 ? '☀️' : '☁️'}</div><div class="text-sm font-bold serif">${Math.round(t)}°</div></div>
-                `).join('');
+                document.getElementById('weather-city').innerText = travelData[day].city + " 24H 每小時預報";
+                document.getElementById('hourly-weather').innerHTML = data.hourly.temperature_2m.slice(0, 24).map((t, i) => `
+                    <div class="weather-hour">
+                        <div class="text-[8px] text-gray-400 mb-1">${String(i).padStart(2, '0')}:00</div>
+                        <div class="text-base mb-1">${data.hourly.weathercode[i] <= 3 ? '☀️' : '☁️'}</div>
+                        <div class="text-xs font-bold serif">${Math.round(t)}°</div>
+                    </div>`).join('');
             } catch (e) {}
         }
 
+        // --- 行程渲染 ---
         function showDay(day) {
             const data = travelData[day];
             fetchWeather(day);
@@ -243,7 +235,7 @@
                     <div class="time-side serif">${item.t.split(':')[0]}<span class="text-[10px] text-gray-200">°</span></div>
                     <div class="content-side">
                         <div class="text-[10px] font-bold text-gray-300 tracking-tighter uppercase mb-1">${item.m}</div>
-                        <h4 class="text-lg font-bold text-gray-800 leading-tight flex justify-between items-center">${item.d} <i class="fas fa-chevron-right text-[10px] opacity-20"></i></h4>
+                        <h4 class="text-lg font-bold text-gray-800 leading-tight flex justify-between items-center">${item.d} <i class="fas fa-arrow-right text-[10px] opacity-10"></i></h4>
                         <p class="text-sm text-gray-400 mt-1 truncate">${item.r || ''}</p>
                     </div>
                 </div>`;
@@ -255,45 +247,51 @@
         function openDetail(day, idx) {
             const item = travelData[day].items[idx];
             const detail = item.detail || {};
-            let h = `<div class="flex items-center gap-2 mb-2"><span class="text-[10px] bg-black text-white px-3 py-1 font-bold uppercase">${item.m}</span><span class="text-sm serif font-bold text-gray-300">${item.t}</span></div><h2 class="text-2xl font-bold serif leading-tight">${item.d}</h2>`;
-            if (detail.about) h += `<div class="mt-4"><p class="text-base text-gray-600">${detail.about}</p></div>`;
-            if (detail.buy) h += `<div class="mt-4 p-4 bg-orange-50 border-l-4 border-orange-200 rounded-r-xl"><h5 class="text-xs font-bold text-orange-600 tracking-widest mb-1 uppercase">Recommended</h5><p class="text-base text-orange-900 font-medium">${detail.buy}</p></div>`;
-            if (detail.link) h += `<div class="mt-4"><a href="${detail.link}" target="_blank" class="active-link">${detail.link}</a></div>`;
-            h += `<button onclick="window.open('${item.map}')" class="w-full bg-black text-white py-5 rounded-2xl text-sm font-bold mt-8 tracking-widest uppercase"><i class="fas fa-location-arrow mr-2"></i>導航至此</button>`;
-            document.getElementById('modal-body').innerHTML = h;
+            document.getElementById('modal-image').style.backgroundImage = `url('${item.img || ''}')`;
+            document.getElementById('modal-body').innerHTML = `
+                <div>
+                    <div class="flex items-center gap-2 mb-2"><span class="text-[10px] bg-black text-white px-2 py-1 font-bold uppercase">${item.m}</span><span class="text-sm serif font-bold text-gray-300">${item.t}</span></div>
+                    <h2 class="text-2xl font-bold serif leading-tight">${item.d}</h2>
+                </div>
+                <div class="text-base text-gray-600 leading-relaxed">${detail.about || ''}</div>
+                ${detail.buy ? `<div class="p-5 bg-orange-50 border-l-4 border-orange-300 rounded-r-2xl"><h5 class="text-[10px] font-bold text-orange-600 tracking-widest uppercase mb-2">Must Eat / Buy</h5><p class="text-base text-orange-900 font-medium">${detail.buy}</p></div>` : ''}
+                <button onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.d)}')" class="w-full bg-black text-white py-5 rounded-2xl text-sm font-bold tracking-widest uppercase"><i class="fas fa-location-arrow mr-2"></i>Map Guide</button>
+            `;
             document.getElementById('infoModal').style.display = 'block';
         }
 
+        // --- 代購清單 ---
         function renderShop() {
-            document.getElementById('shopping-list').innerHTML = shops.map(s => `
-                <div class="bg-white p-5 rounded-3xl border border-gray-100 flex flex-col gap-4 shadow-sm">
+            document.getElementById('shopping-list').innerHTML = shops.map(s => {
+                let img = s.img || ''; if (img && !img.startsWith('data:')) img = 'data:image/jpeg;base64,' + img;
+                return `<div class="bg-white p-5 rounded-3xl border flex flex-col gap-4 shadow-sm">
                     <div class="flex gap-4">
-                        <div class="w-16 h-16 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url('${s.img || ''}')" onclick="viewImg('${s.img}')"></div>
+                        <div class="w-16 h-16 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url('${img}')" onclick="viewImg('${img}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="flex justify-between font-bold text-base"><span>${s.name}</span><button onclick="delShop(${s.id})">✕</button></div>
-                            <div class="text-sm text-gray-400 mt-1">${s.spec || ''} | Qty: ${s.qty || 1}</div>
+                            <div class="text-xs text-gray-400 mt-1">${s.spec || ''} | Qty: ${s.qty || 1}</div>
                             <div class="flex gap-2 mt-2 font-bold"><span class="text-[10px] bg-indigo-50 text-indigo-400 px-2 py-1 rounded-full">${s.loc || '未定'}</span><span class="text-[10px] bg-gray-50 text-gray-400 px-2 py-1 rounded-full">${s.purchaser || '我'}</span></div>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center border-t border-gray-50 pt-3"><div class="text-base font-bold serif text-red-600">¥ ${s.price || '--'}</div></div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
         }
 
         function addShoppingItem() {
-            const name = document.getElementById('shop-name').value;
-            if(!name) return;
-            const item = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, img: tempImg };
-            shops.unshift(item); localStorage.setItem('tr_shop_v11', JSON.stringify(shops));
+            const n = document.getElementById('shop-name').value; if(!n) return;
+            const item = { id: Date.now(), name: n, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, img: tempImg };
+            shops.unshift(item); localStorage.setItem('tr_shop_v12', JSON.stringify(shops));
             renderShop(); syncToSheets("shop", item);
-            document.getElementById('shop-name').value = '';
+            document.getElementById('shop-name').value = ''; tempImg = null;
+            document.getElementById('shop-img-status').innerText = "上傳商品圖片";
         }
 
+        // --- 記帳 ---
         function addExpense() {
-            const name = document.getElementById('exp-name').value;
-            const amt = document.getElementById('exp-amount').value;
-            if(!name || !amt) return;
-            const e = { id: Date.now(), name, amt, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value };
-            exps.unshift(e); localStorage.setItem('tr_exp_v11', JSON.stringify(exps));
+            const n = document.getElementById('exp-name').value; const a = document.getElementById('exp-amount').value;
+            if(!n || !a) return;
+            const e = { id: Date.now(), name: n, amt: a, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value };
+            exps.unshift(e); localStorage.setItem('tr_exp_v12', JSON.stringify(exps));
             renderLedger(); syncToSheets("exp", e);
             document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
         }
@@ -307,17 +305,7 @@
             document.querySelector('#total-amount span').innerText = total;
         }
 
-        function addDoc() {
-            const name = document.getElementById('doc-name').value;
-            if(!name || !tempImg) return;
-            docs.unshift({ id: Date.now(), name, img: tempImg }); localStorage.setItem('tr_doc_v11', JSON.stringify(docs));
-            renderDocs(); document.getElementById('doc-name').value = '';
-        }
-
-        function renderDocs() {
-            document.getElementById('doc-list').innerHTML = docs.map(d => `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-sm font-bold shadow-sm"><span>${d.name}</span><button onclick="viewImg('${d.img}')" class="text-blue-500 bg-blue-50 px-3 py-1 rounded-lg">VIEW</button></div>`).join('');
-        }
-
+        // --- 圖片處理 ---
         function processImage(input) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -327,21 +315,22 @@
                     canvas.width = 400; canvas.height = (img.height/img.width)*400;
                     canvas.getContext('2d').drawImage(img, 0, 0, 400, canvas.height);
                     tempImg = canvas.toDataURL('image/jpeg', 0.4);
+                    document.getElementById('shop-img-status').innerText = "✅ 圖片已選取";
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(input.files[0]);
         }
 
-        function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v11', JSON.stringify(shops)); renderShop(); }
-        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v11', JSON.stringify(exps)); renderLedger(); }
-        function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
+        // --- 輔助函數 ---
         function switchTab(t) { document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); document.getElementById(t).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-gray-300')); event.currentTarget.classList.remove('text-gray-300'); }
-        function viewImg(s) { if(!s) return; const w = window.open(""); w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;"><img src="${s}" style="max-width:100%;height:auto;"></body>`); }
+        function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
         function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
-
+        function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v12', JSON.stringify(shops)); renderShop(); }
+        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v12', JSON.stringify(exps)); renderLedger(); }
+        function viewImg(s) { if(!s) return; const w = window.open(""); w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;"><img src="${s}" style="max-width:100%;height:auto;"></body>`); }
         async function syncToSheets(type, data) { if (GAS_URL.startsWith("https")) { fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data }) }); } }
-
+        
         window.onload = initData;
     </script>
 </body>
