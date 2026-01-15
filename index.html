@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Kansai Guide</title>
+    <title>2026 Kansai Handbook</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,51 +14,60 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 行程時間軸 */
         .timeline-item { position: relative; display: flex; padding-bottom: 2.5rem; cursor: pointer; }
-        .time-side { width: 70px; flex-shrink: 0; text-align: right; padding-right: 15px; font-size: 1.3rem; font-weight: 700; position: relative; color: #111; }
-        .time-side::after { content: ''; position: absolute; right: -1px; top: 12px; width: 8px; height: 8px; background: white; border: 1px solid #ccc; border-radius: 50%; z-index: 10; }
-        .timeline-line { position: absolute; left: 69.5px; top: 12px; bottom: 0; width: 1px; background: #eee; }
-        .content-side { flex: 1; padding-left: 15px; }
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 5vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .time-side { width: 75px; flex-shrink: 0; text-align: right; padding-right: 20px; font-size: 1.4rem; font-weight: 700; position: relative; color: #111; }
+        .time-side::after { content: ''; position: absolute; right: -1px; top: 14px; width: 10px; height: 10px; background: white; border: 1px solid #ccc; border-radius: 50%; z-index: 10; }
+        .timeline-line { position: absolute; left: 74.5px; top: 14px; bottom: 0; width: 1px; background: #e5e7eb; }
+        .content-side { flex: 1; padding-left: 20px; }
+
+        /* 詳情彈窗 */
+        .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 8vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 82vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        
+        /* 導航標籤 */
         .nav-active { color: var(--blue) !important; font-weight: 700; }
         .day-btn.active { color: #111; font-weight: 700; border-bottom: 3px solid #111; }
-        .weather-hour { min-width: 55px; flex-shrink: 0; }
+
+        /* SHOP 二欄網格 */
+        .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .purchased-item { opacity: 0.5; filter: grayscale(1); }
+        .weather-hour { min-width: 60px; flex-shrink: 0; text-align: center; }
     </style>
 </head>
 <body class="pb-24">
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[4000] flex items-center justify-center">
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[6000] flex items-center justify-center">
         <div class="text-center">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-900 mx-auto"></div>
-            <p class="mt-4 text-[10px] text-gray-400 tracking-widest uppercase">Initializing...</p>
+            <p class="mt-4 text-xs text-gray-400 tracking-widest uppercase">Loading Planner...</p>
         </div>
     </div>
 
-    <header class="p-8 text-center">
+    <header class="p-8 text-center bg-transparent">
         <div class="text-[10px] text-gray-400 tracking-[0.4em] mb-2 font-light uppercase">Premium Osaka Handbook</div>
-        <h1 class="text-xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
+        <h1 class="text-2xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
     </header>
 
     <div id="infoModal" class="modal" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <button class="absolute top-4 right-4 text-white bg-black/40 w-10 h-10 rounded-full z-10" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            <div id="modal-image" class="w-full h-52 bg-cover bg-center"></div>
-            <div class="p-8 space-y-4" id="modal-body"></div>
+        <div class="modal-content p-8" onclick="event.stopPropagation()">
+            <button class="absolute top-6 right-6 text-gray-400" onclick="closeModal()"><i class="fas fa-times text-2xl"></i></button>
+            <div id="modal-body" class="space-y-6"></div>
         </div>
     </div>
 
     <!-- 1. PLAN -->
     <div id="itinerary" class="tab-content active px-6">
         <div class="flex justify-between mb-8 overflow-x-auto hide-scrollbar space-x-6 px-2 text-gray-300">
-            <button onclick="showDay(1)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">MON</span><span class="text-lg serif">2/2</span></button>
-            <button onclick="showDay(2)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">TUE</span><span class="text-lg serif">2/3</span></button>
-            <button onclick="showDay(3)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">WED</span><span class="text-lg serif">2/4</span></button>
-            <button onclick="showDay(4)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">THU</span><span class="text-lg serif">2/5</span></button>
-            <button onclick="showDay(5)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">FRI</span><span class="text-lg serif">2/6</span></button>
+            <button onclick="showDay(1)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">MON</span><span class="text-xl serif">2/2</span></button>
+            <button onclick="showDay(2)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">TUE</span><span class="text-xl serif">2/3</span></button>
+            <button onclick="showDay(3)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">WED</span><span class="text-xl serif">2/4</span></button>
+            <button onclick="showDay(4)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">THU</span><span class="text-xl serif">2/5</span></button>
+            <button onclick="showDay(5)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">FRI</span><span class="text-xl serif">2/6</span></button>
         </div>
-        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
             <div id="weather-city" class="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4 text-center">Hourly Weather</div>
             <div id="hourly-weather" class="flex space-x-2 overflow-x-auto hide-scrollbar"></div>
         </div>
@@ -68,43 +77,45 @@
     <!-- 2. SHOP -->
     <div id="shopping" class="tab-content p-6">
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6 text-sm">
-            <h3 class="text-[10px] font-bold mb-4 text-gray-300 uppercase tracking-widest text-center">Add New Wish</h3>
             <div class="space-y-4">
-                <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b py-2 outline-none">
+                <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b py-2 outline-none text-base">
                 <div class="grid grid-cols-2 gap-4">
                     <input type="text" id="shop-spec" placeholder="規格" class="w-full border-b py-2 outline-none">
                     <input type="number" id="shop-qty" placeholder="數量" class="w-full border-b py-2 outline-none">
                 </div>
-                <input type="text" id="shop-loc" placeholder="場所" class="w-full border-b py-2 outline-none">
+                <input type="text" id="shop-loc" placeholder="代購場所" class="w-full border-b py-2 outline-none">
                 <input type="text" id="shop-purchaser" placeholder="購買者" class="w-full border-b py-2 outline-none">
                 <label class="block border border-dashed border-gray-200 py-6 text-center rounded-2xl text-gray-400 text-xs cursor-pointer">
-                    <span id="shop-img-status"><i class="fas fa-camera mr-2 text-lg"></i>上傳照片</span>
+                    <span id="shop-img-status"><i class="fas fa-camera mr-1"></i>上傳照片</span>
                     <input type="file" accept="image/*" class="hidden" onchange="processImage(this)">
                 </label>
                 <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest">Add Item</button>
             </div>
         </div>
-        <div id="shopping-list" class="space-y-4"></div>
+        <div id="shop-filter-bar" class="flex space-x-2 overflow-x-auto hide-scrollbar mb-4"></div>
+        <div id="shopping-list"></div>
     </div>
 
     <!-- 3. CASH -->
-    <div id="ledger" class="tab-content p-6 text-center">
-        <div id="total-amount" class="mb-8">
+    <div id="ledger" class="tab-content p-6">
+        <div id="total-amount" class="mb-8 text-center">
             <p class="text-[10px] text-gray-400 uppercase tracking-widest"><i class="fas fa-wallet mr-2"></i>Total Spend</p>
             <div class="text-5xl font-bold serif text-red-600 mt-2">¥<span>0</span></div>
         </div>
-        <div class="bg-white p-6 rounded-3xl border text-left mb-6 text-sm">
-            <input type="text" id="exp-name" placeholder="項目" class="w-full border-b py-3 mb-4 outline-none">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-2 outline-none font-bold">
-                <select id="exp-method" class="border-b py-2 outline-none bg-transparent">
-                    <option>現金</option><option>刷卡</option><option>Suica</option>
-                </select>
+        <div class="bg-white p-6 rounded-3xl border text-sm mb-6">
+            <div class="space-y-4">
+                <input type="text" id="exp-name" placeholder="花費項目" class="w-full border-b py-2 outline-none text-base font-bold">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-2 outline-none text-base font-bold text-red-600">
+                    <select id="exp-method" class="border-b py-2 outline-none bg-transparent">
+                        <option>現金</option><option>刷卡</option><option>Suica</option>
+                    </select>
+                </div>
+                <input type="date" id="exp-date" class="w-full border-b py-2 outline-none">
+                <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest">Save Cash</button>
             </div>
-            <input type="date" id="exp-date" class="w-full border-b py-3 mb-6 outline-none">
-            <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest">Save Cash</button>
         </div>
-        <div id="expense-list" class="text-left space-y-2"></div>
+        <div id="expense-list" class="space-y-2"></div>
     </div>
 
     <!-- 4. DOCS -->
@@ -120,7 +131,7 @@
                 <p>2/6 回程：STARLUX JX821 (12:20 - 14:35)</p>
             </div>
         </div>
-        <div class="space-y-4" id="doc-list">
+        <div class="space-y-4" id="doc-list-hotels">
             <div class="bg-white p-5 rounded-2xl border flex justify-between items-center">
                 <div><div class="text-sm font-bold">難波格利茲飯店 (GRIDS)</div><div class="text-[10px] text-gray-400">2/2 入住 - 2/3 退房</div></div>
                 <button onclick="navigate('GRIDS PREMIUM HOTEL OSAKA NAMBA')" class="text-blue-500 bg-blue-50 p-3 rounded-full"><i class="fas fa-map-marker-alt"></i></button>
@@ -133,7 +144,7 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t flex justify-around p-5 safe-area-bottom z-[2000]">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-50 flex justify-around p-5 safe-area-bottom z-[2000]">
         <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-300"><i class="fas fa-calendar-check text-xl"></i><span class="text-[9px] mt-1">PLAN</span></button>
         <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-shopping-cart text-xl"></i><span class="text-[9px] mt-1">SHOP</span></button>
         <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-wallet text-xl"></i><span class="text-[9px] mt-1">CASH</span></button>
@@ -141,120 +152,57 @@
     </nav>
 
     <script>
-        // --- 設定 (請務必填寫 GAS URL) ---
+        // --- 設定 (請填寫您的 GAS URL) ---
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzEv6Bda3jKfHZNoV-duexjmNT47igMmz0s_Ldm7fRyR23TH619rqp3bzYd9jXUT0yO/exec"; 
 
-        // --- 完整行程數據庫 (根據 PDF 100% 還原) ---
+        // --- 完整行程 (PDF還原) ---
         const travelData = {
-            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/2 Mon | 關西機場 ● 臨空城 ● 難波", items: [
-                { t: "06:30", d: "機場捷運(台北車站)", m: "交通", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537", detail: { 
-                    remarks: "機場捷運時刻表查詢：<br><a href='https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php' target='_blank' class='active-link'>點此查詢時刻表</a>" 
-                }},
-                { t: "07:10", d: "桃園機場第一航廈", m: "交通", map: "https://maps.app.goo.gl/wEwQpbYUt7wF14Vf8", detail: { 
-                    remarks: "約需36分鐘。抵達後前往星宇航空櫃台報到，報到完成後前往第二航廈入關，入關後進去星宇航空貴賓室享用早餐。" 
-                }},
-                { t: "09:20", d: "出發前往關西機場", m: "交通", map: "https://maps.app.goo.gl/JLbrA5JiHkfwz835A", detail: { 
-                    remarks: "搭乘星宇航空JX822班機，前往大阪關西機場(KIX)，領取行李後前往南海電鐵搭乘電車前往臨空城outlet。<br>南海電鐵時刻表：<br><a href='https://www.howto-osaka.com/tc/access-timetable/' target='_blank' class='active-link'>點此查看時刻表</a>" 
-                }},
-                { t: "14:00", d: "臨空城outlet", m: "景點", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", detail: { 
-                    about: "● 關西最大等級 OUTLET，飛機一落地就能開始「第一波血拼」。<br>● 面海設計，天氣好時可看到關西機場跑道與夕陽。<br>● 品牌齊全、尺寸齊、退稅方便。",
-                    buy: "● 西松屋：嬰幼兒衣物<br>● Onitsuka Tiger：日本限定色、Mexico 66<br>● Nike / Adidas：鞋子、衣服<br>● Earth Music & Ecology：衣服<br>● Coleman：後背包<br>● Crocs：基本款拖鞋",
-                    remarks: "outlet地圖：<br><a href='https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf' target='_blank' class='active-link'>點此下載地圖PDF</a>"
-                }},
-                { t: "19:25", d: "GRIDS PREMIUM HOTEL OSAKA NAMBA", m: "住宿", map: "https://maps.app.goo.gl/BYcsfakHzt5pYJwi9", detail: { 
-                    remarks: "搭乘南海電鐵(特急Rapi:t β)，需到窗口買票，不可直接刷卡上車。" 
-                }},
-                { t: "19:30", d: "大起水產 迴轉壽司 道頓堀店", m: "餐廳", map: "https://maps.app.goo.gl/4ZijhBKwhh4oWKmt6", detail: { 
-                    buy: "● 黑鮪魚赤身 / 中腹<br>● 炙燒鮭魚肚<br>● 海膽軍艦（看當天品質）<br>● 茶碗蒸（日本版本超嫩）",
-                    remarks: "吃完可以在道頓堀逛逛購買藥妝。"
-                }},
-                { t: "22:30", d: "一蘭 道頓堀店別館 / 難波御堂筋店", m: "餐廳", map: "https://maps.app.goo.gl/s4weNpypxEK19rvb9", detail: { 
-                    remarks: "道頓堀區有多間分店可供選擇。" 
-                }}
+            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/2 Mon | 關西機場 ● 臨空城", items: [
+                { t: "06:30", d: "機場捷運(台北車站)", m: "交通", r: "搭乘計程車前往北車轉機捷。", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537", detail: { about: "時刻表查詢：<br><a href='https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此查看</a>" }},
+                { t: "09:20", d: "星宇 JX822 起飛", m: "交通", r: "飛往關西機場 (KIX)。", detail: { about: "報到完成後可前往第二航廈享用星宇貴賓室早餐。" }},
+                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "景點", r: "落地首站血拼。", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", detail: { about: "關西最大規模，品牌齊全。夕陽極美。<br>地圖PDF：<a href='https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此打開</a>", buy: "必買：Onitsuka Tiger、西松屋、Coleman。" }},
+                { t: "19:30", d: "🍱 晚餐：大起水產", m: "美食", r: "道頓堀人氣壽司。", detail: { buy: "必吃：黑鮪魚赤身、茶碗蒸。" }},
+                { t: "22:30", d: "🍜 消夜：一蘭拉麵", m: "美食", r: "道頓堀經典分店。", detail: { about: "個人化口味，秘製紅辣粉。" }}
             ]},
-            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, title: "2/3 Tue | KKDAY天橋立一日遊", items: [
-                { t: "06:55", d: "蟹道樂道頓堀東店集合", m: "交通", map: "https://maps.app.goo.gl/wGSZwfghYPAUpq727", detail: { 
-                    remarks: "行李寄放在飯店櫃檯，走到集合點(約需15分鐘請提早出門)，路上可以買早餐帶上車吃。" 
-                }},
-                { t: "10:00", d: "伊根灣遊覽船", m: "景點", map: "https://maps.app.goo.gl/M1y4cYrxukxZw9AAA", detail: { 
-                    about: "● 日本「舟屋」代表景點，海就在房子正下方。<br>● 冬季海色偏深藍，很有日本秘境感。<br>● 可餵海鷗（超好拍）。",
-                    remarks: "約停留45分鐘。"
-                }},
-                { t: "11:00", d: "天橋立傘松公園", m: "景點", map: "https://maps.app.goo.gl/Q2G1kdLTxYXpqwgE6", detail: { 
-                    about: "● 日本三景之一。<br>● 「倒著看」的「倒頭栽」視角是重點。",
-                    buy: "● 智惠團子（ちえだんご）<br>● 抹茶＋日式糰子組合",
-                    remarks: "約停留1小時。"
-                }},
-                { t: "12:00", d: "天橋立周邊自理午餐", m: "餐廳", map: "", detail: { 
-                    buy: "● 蛤蜊丼（あさり丼）：在地名物<br>● 海鮮丼：冬季魚種肥美（鰤魚、甜蝦）",
-                    remarks: "午餐時間約1.5小時。"
-                }},
-                { t: "14:45", d: "美山茅草屋之里", m: "景點", map: "https://maps.app.goo.gl/TGn1n7bdZyGeb33a6", detail: { 
-                    about: "● 日本保存最完整的茅草屋聚落。<br>● 冬季若有積雪＝日本明信片等級畫面。",
-                    buy: "● 手工米果<br>● 在地味噌<br>● 美山牛乳製甜點",
-                    remarks: "約停留1小時。"
-                }},
-                { t: "17:45", d: "返抵大阪日本橋", m: "交通", map: "https://maps.app.goo.gl/wGSZwfghYPAUpq727", detail: { remarks: "蟹道樂東店前下車。" }},
-                { t: "19:40", d: "Hotel Hankyu RESPIRE OSAKA", m: "住宿", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA", detail: { 
-                    remarks: "[地鐵御堂筋線] 難波站 → 梅田站。" 
-                }}
+            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, title: "2/3 Tue | 海之京都一日遊", items: [
+                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", r: "賞舟屋、餵海鷗。", detail: { about: "日本最美村莊，秘境深藍海景。" }},
+                { t: "11:00", d: "🚠 天橋立傘松公園", m: "景點", r: "三景「倒頭栽」。", detail: { buy: "必吃：智惠團子。" }},
+                { t: "14:45", d: "🏡 美山茅草屋之里", m: "景點", r: "原始合掌村風景。", detail: { buy: "推薦：美山牛乳甜點。" }}
             ]},
-            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, title: "2/4 Wed | 大阪 → 貴船神社", items: [
-                { t: "09:00", d: "梅田周邊逛街", m: "行程", map: "", detail: { remarks: "百貨推薦：yodobashi、uniqlo。" }},
-                { t: "12:30", d: "梅田出發", m: "交通", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA", detail: { remarks: "使用 suica 搭乘。" }},
-                { t: "14:40", d: "貴船神社", m: "景點", map: "https://maps.app.goo.gl/2SeLPrBbPPCxQV1p9", detail: { 
-                    about: "● 京都最夢幻神社之一。<br>● 燈籠石階是代表畫面。<br>● 冬季夜間點燈＝氣氛滿分。",
-                    buy: "● 水占卜（みずみくじ）：把籤放水中才會顯字。<br>● 祈求：姻緣、良緣、事業運。"
-                }},
-                { t: "16:30", d: "貴船點燈", m: "景點", map: "https://maps.app.goo.gl/wQqagSxeXeh5hGVc6", detail: { 
-                    about: "貴船神社最著名的景色莫過於前往本宮的石階參道。兩側整齊排列的朱紅燈籠，與石階、樹影、四季風景交織成夢幻畫面。夜間點燈時，更散發神秘浪漫的氛圍。",
-                    remarks: "預計16:30點燈。"
-                }},
-                { t: "20:30", d: "燒肉力丸 梅田東通店", m: "餐廳", map: "https://maps.app.goo.gl/mSRk6AkBcJV6ta7A", detail: { 
-                    about: "● 大阪人氣燒肉吃到飽。<br>● 肉品質穩定、CP 值高。",
-                    buy: "● 鹽蔥牛舌<br>● 和牛肩胛<br>● 烤蒜片＋白飯（隱藏王者）",
-                    remarks: "已預約20:30，可查詢信件：【燒肉力丸 東通店】感謝您的預約。"
-                }}
+            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, title: "2/4 Wed | 貴船神社點燈", items: [
+                { t: "14:40", d: "⛩️ 貴船神社參拜", m: "景點", r: "燈籠石階氣氛絕佳。", detail: { buy: "體驗：水占卜。" }},
+                { t: "20:30", d: "🥩 晚餐：燒肉力丸", m: "美食", r: "放題燒肉預約。", detail: { buy: "必吃：鹽蔥牛舌。" }}
             ]},
-            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, title: "2/5 Thu | 大阪 → 勝尾寺 → 姬路城", items: [
-                { t: "08:00", d: "飯店出發", m: "交通", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA" },
-                { t: "09:30", d: "勝尾寺", m: "景點", map: "https://maps.app.goo.gl/au2qs1mkMEeMs66b8", detail: { 
-                    about: "● 日本最有名的「勝運寺」。<br>● 遍地達摩非常壯觀。<br>● 適合祈求：考試、事業、專案成功。",
-                    buy: "● 小達摩（可寫願望）<br>● 勝運御守（紅色款）",
-                    remarks: "參觀至11:00，門票：500日圓。<br>購票連結：<a href='https://www.asoview.com/item/ticket/ticket0000039224/' target='_blank' class='active-link'>點此購票</a>"
-                }},
-                { t: "13:35", d: "姬路城", m: "景點", map: "https://maps.app.goo.gl/GeWsaaQig2eerPim9", detail: { 
-                    about: "● 日本第一名城（世界遺產）。<br>● 純白外觀＝「白鷺城」。<br>● 城內保留原始木構造。",
-                    buy: "● 姬路城白色布丁しろプリン<br>● 姬路關東煮<br>● 神戶牛<br>● Cafe de Muche杏仁吐司",
-                    remarks: "參觀至16:00，門票：1000日圓。"
-                }}
+            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, title: "2/5 Thu | 姬路城巡禮", items: [
+                { t: "09:30", d: "🔴 勝尾寺", m: "景點", r: "滿山達摩勝運寺。", detail: { about: "祈求學業事業順利。" }},
+                { t: "13:35", d: "🏯 姬路城參觀", m: "景點", r: "世界遺產「白鷺城」。", detail: { buy: "名物：白色布丁、關東煮。" }}
             ]},
-            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/6 Fri | 大阪 → 關西機場 → 溫暖的家", items: [
-                { t: "08:00", d: "飯店出發", m: "交通", map: "https://maps.app.goo.gl/LSLKXtng8oKr4Q4QA", detail: { remarks: "KKDAY機場接送。" }},
-                { t: "09:00", d: "關西機場貴賓室", m: "交通", map: "https://maps.app.goo.gl/JLbrA5JiHkfwz835A" },
-                { t: "12:20", d: "出發前往桃園機場", m: "交通", map: "https://maps.app.goo.gl/wEwQpbYUt7wF14Vf8", detail: { 
-                    remarks: "搭乘星宇 JX821 班機回台。機場捷運時刻表查詢：<br><a href='https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php' target='_blank' class='active-link'>點此查詢機捷時刻表</a>" 
-                }},
-                { t: "16:40", d: "溫暖的家", m: "交通", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537" }
+            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/6 Fri | 賦歸桃園", items: [
+                { t: "08:00", d: "機場接送出發", m: "交通", r: "KKDAY 預約接送。" },
+                { t: "12:20", d: "✈️ 星宇 JX821 起飛", m: "交通", r: "關西機場 (KIX) 出發。" }
             ]}
         };
 
+        // --- 全域變數 ---
         let shops = JSON.parse(localStorage.getItem('tr_shop_v13')) || [];
         let exps = JSON.parse(localStorage.getItem('tr_exp_v13')) || [];
+        let currentFilter = 'All';
         let tempImg = null;
 
+        // --- 啟動與同步 ---
         async function initData() {
-            // 先顯示本地
+            // 1. 立即渲染本地內容 (不卡死)
             showDay(1); renderShop(); renderLedger();
             document.getElementById('loading-overlay').classList.add('hidden');
-            // 後同步雲端
-            if (GAS_URL.startsWith("https")) {
+
+            // 2. 背景進行雲端抓取
+            if (GAS_URL.includes("https")) {
                 try {
-                    const r = await fetch(GAS_URL);
-                    const cloud = await r.json();
-                    if (cloud.shops) { shops = cloud.shops; localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); }
-                    if (cloud.exps) { exps = cloud.exps; localStorage.setItem('tr_exp_v13', JSON.stringify(exps)); renderLedger(); }
-                } catch(e) { console.warn("Cloud offline"); }
+                    const r = await fetch(GAS_URL, { signal: AbortSignal.timeout(6000) });
+                    const c = await r.json();
+                    if (c.shops) { shops = c.shops; localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); }
+                    if (c.exps) { exps = c.exps; localStorage.setItem('tr_exp_v13', JSON.stringify(exps)); renderLedger(); }
+                } catch(e) { console.warn("Sync failed"); }
             }
         }
 
@@ -272,12 +220,20 @@
             } catch(e) {}
         }
 
+        // --- 渲染函數 ---
         function showDay(day) {
             const data = travelData[day];
             fetchWeather(day);
             let h = '<div class="timeline-line"></div>';
             data.items.forEach((it, idx) => {
-                h += `<div class="timeline-item" onclick="openDetail(${day}, ${idx})"><div class="time-side serif">${it.t.split(':')[0]}<span class="text-[9px] text-gray-300">°</span></div><div class="content-side"><div class="text-[9px] font-bold text-gray-300 uppercase mb-1">${it.m}</div><h4 class="text-lg font-bold">${it.d}</h4><p class="text-sm text-gray-400 truncate">${it.r}</p></div></div>`;
+                h += `<div class="timeline-item" onclick="openDetail(${day}, ${idx})">
+                        <div class="time-side serif">${it.t.split(':')[0]}<span class="text-[10px] text-gray-300">°</span></div>
+                        <div class="content-side">
+                            <div class="text-[9px] font-bold text-gray-300 uppercase mb-1">${it.m}</div>
+                            <h4 class="text-lg font-bold flex justify-between items-center">${it.d} <i class="fas fa-location-arrow text-[10px] text-red-500 opacity-20"></i></h4>
+                            <p class="text-sm text-gray-400 truncate">${it.r || ''}</p>
+                        </div>
+                    </div>`;
             });
             document.getElementById('day-content').innerHTML = h;
             document.querySelectorAll('.day-btn').forEach((b, i) => b.classList.toggle('active', i+1===day));
@@ -285,41 +241,59 @@
 
         function openDetail(day, idx) {
             const it = travelData[day].items[idx];
-            document.getElementById('modal-image').style.backgroundImage = `url('${it.img}')`;
+            const detail = it.detail || {};
             document.getElementById('modal-body').innerHTML = `
-                <div class="flex items-center gap-2"><span class="text-[10px] bg-black text-white px-2 py-1 font-bold uppercase">${it.m}</span><span class="text-sm font-bold serif text-gray-300">${it.t}</span></div>
-                <h2 class="text-2xl font-bold serif">${it.d}</h2>
-                <p class="text-base text-gray-600">${it.detail.about || it.r}</p>
-                ${it.detail.buy ? `<div class="p-4 bg-orange-50 border-l-4 border-orange-300 rounded-r-xl"><h5 class="text-[10px] font-bold text-orange-600 uppercase mb-1">Must Try</h5><p class="text-base text-orange-900 font-medium">${it.detail.buy}</p></div>` : ''}
-                <button onclick="navigate('${it.d}')" class="w-full bg-black text-white py-4 rounded-2xl font-bold uppercase tracking-widest mt-6">Maps</button>
-            `;
+                <div class="flex items-center gap-2"><span class="text-[10px] bg-black text-white px-2 py-1 font-bold uppercase">${it.m}</span><span class="text-sm serif font-bold text-gray-300">${it.t}</span></div>
+                <h2 class="text-2xl font-bold serif leading-tight">${it.d}</h2>
+                <p class="text-base text-gray-600">${detail.about || it.r || ''}</p>
+                ${detail.buy ? `<div class="p-4 bg-orange-50 border-l-4 border-orange-300 rounded-r-xl"><h5 class="text-[10px] font-bold text-orange-600 uppercase mb-1 tracking-widest">Recommended</h5><p class="text-base text-orange-900 font-medium">${detail.buy}</p></div>` : ''}
+                <button onclick="navigate('${it.d}')" class="w-full bg-black text-white py-4 rounded-2xl font-bold uppercase tracking-widest mt-6">Open Map</button>`;
             document.getElementById('infoModal').style.display = 'block';
         }
 
         function renderShop() {
-            document.getElementById('shopping-list').innerHTML = shops.map(s => {
+            const locs = ['All', ...new Set(shops.map(s => s.loc || '未定'))];
+            document.getElementById('shop-filter-bar').innerHTML = locs.map(l => `<button onclick="setFilter('${l}')" class="text-[10px] px-4 py-1.5 rounded-full border ${currentFilter === l ? 'bg-black text-white' : 'bg-white text-gray-400'}">${l}</button>`).join('');
+            const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
+            document.getElementById('shopping-list').innerHTML = `<div class="grid grid-cols-2 gap-3">` + filtered.map(s => {
                 let img = s.img || ''; if (img && !img.startsWith('data:')) img = 'data:image/jpeg;base64,' + img;
-                return `<div class="bg-white p-5 rounded-3xl border flex flex-col gap-4 shadow-sm text-sm"><div class="flex gap-4"><div class="w-16 h-16 bg-gray-50 rounded-2xl bg-cover bg-center flex-shrink-0" style="background-image:url('${img}')" onclick="viewImg('${img}')"></div><div class="flex-1"><b>${s.name}</b><div class="text-xs text-gray-400">${s.spec || ''} | Qty: ${s.qty || 1}</div><div class="mt-2"><span class="bg-indigo-50 text-indigo-400 px-2 py-1 rounded-full text-[9px] font-bold">${s.loc || '未定'}</span></div></div><button onclick="delShop(${s.id})" class="text-gray-200">✕</button></div></div>`;
-            }).join('');
+                return `<div class="bg-white p-3 rounded-2xl border flex flex-col gap-2 ${s.purchased ? 'purchased-item' : ''}">
+                    <div class="w-full h-32 bg-gray-50 rounded-xl bg-cover bg-center" style="background-image:url('${img}')" onclick="viewImg('${img}')"></div>
+                    <div class="flex-1 min-w-0">
+                        <b class="text-sm truncate block">${s.name}</b>
+                        <div class="text-[10px] text-gray-400 truncate">${s.spec || ''} | Qty:${s.qty || 1}</div>
+                        <div class="mt-2 flex justify-between items-center">
+                           <input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="toggleShop(${s.id})" class="accent-black">
+                           <div class="text-xs font-bold text-red-600">¥<input type="number" value="${s.price || ''}" onblur="updateShopPrice(${s.id}, this.value)" class="w-12 border-b text-right outline-none bg-transparent"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('') + `</div>`;
         }
 
+        // --- 核心工具 ---
         function addShoppingItem() {
-            const n = document.getElementById('shop-name').value; if(!n) return;
-            const it = { id: Date.now(), name: n, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, img: tempImg };
+            const name = document.getElementById('shop-name').value; if(!name) return;
+            const it = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, img: tempImg, purchased: false, price: "" };
             shops.unshift(it); localStorage.setItem('tr_shop_v13', JSON.stringify(shops));
             renderShop(); syncToSheets("shop", it); document.getElementById('shop-name').value = ''; tempImg = null; document.getElementById('shop-img-status').innerText = "上傳照片";
         }
-
-        function renderLedger() {
-            let t = 0; document.getElementById('expense-list').innerHTML = exps.map(e => { t += Number(e.amt); return `<div class="bg-white p-4 border-b flex justify-between items-center text-sm"><div><b>${e.name}</b><div class="text-[10px] text-gray-300">${e.method}</div></div><div class="flex gap-4 items-center"><b>¥${e.amt}</b><button onclick="delExp(${e.id})" class="text-gray-200">✕</button></div></div>`; }).join('');
-            document.querySelector('#total-amount span').innerText = t;
-        }
+        function toggleShop(id) { const i = shops.findIndex(s => s.id === id); shops[i].purchased = !shops[i].purchased; localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); syncToSheets("shop", shops[i]); }
+        function updateShopPrice(id, p) { const i = shops.findIndex(s => s.id === id); shops[i].price = p; localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); syncToSheets("shop", shops[i]); }
+        function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); syncToSheets("del_shop", {id}); }
+        function setFilter(l) { currentFilter = l; renderShop(); }
 
         function addExpense() {
             const n = document.getElementById('exp-name').value; const a = document.getElementById('exp-amount').value; if(!n || !a) return;
             const e = { id: Date.now(), name: n, amt: a, method: document.getElementById('exp-method').value, date: document.getElementById('exp-date').value };
-            exps.unshift(e); localStorage.setItem('tr_exp_v13', JSON.stringify(exps)); renderLedger(); syncToSheets("exp", e); document.getElementById('exp-name').value = '';
+            exps.unshift(e); localStorage.setItem('tr_exp_v13', JSON.stringify(exps)); renderLedger(); syncToSheets("exp", e);
+            document.getElementById('exp-name').value = ''; document.getElementById('exp-amount').value = '';
         }
+        function renderLedger() {
+            let t = 0; document.getElementById('expense-list').innerHTML = exps.map(e => { t += Number(e.amt); return `<div class="bg-white p-4 border-b flex justify-between items-center text-sm"><div><b>${e.name}</b><div class="text-[10px] text-gray-400">${e.date} | ${e.method}</div></div><div class="flex gap-4 items-center"><b>¥${Number(e.amt).toLocaleString()}</b><button onclick="delExp(${e.id})" class="text-gray-200">✕</button></div></div>`; }).join('');
+            document.querySelector('#total-amount span').innerText = t.toLocaleString();
+        }
+        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v13', JSON.stringify(exps)); renderLedger(); syncToSheets("del_exp", {id}); }
 
         function processImage(input) {
             const r = new FileReader(); r.onload = (e) => {
@@ -331,15 +305,14 @@
             }; r.readAsDataURL(input.files[0]);
         }
 
-        function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); }
-        function delExp(id) { exps = exps.filter(e => e.id !== id); localStorage.setItem('tr_exp_v13', JSON.stringify(exps)); renderLedger(); }
+        async function syncToSheets(type, data) { if (GAS_URL.includes("https")) fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data }) }); }
         function switchTab(t) { document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); document.getElementById(t).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-gray-300')); event.currentTarget.classList.remove('text-gray-300'); }
         function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
         function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
         function viewImg(s) { if(!s) return; const w = window.open(""); w.document.write(`<body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;"><img src="${s}" style="max-width:100%;height:auto;"></body>`); }
-        async function syncToSheets(type, data) { if (GAS_URL.startsWith("https")) fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data }) }); }
-
+        
         window.onload = initData;
+        document.getElementById('exp-date').valueAsDate = new Date();
     </script>
 </body>
 </html>
