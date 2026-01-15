@@ -252,23 +252,85 @@
         }
 
         function renderShop() {
+            // 1. 處理場所篩選按鈕 (Filter Bar)
             const locs = ['All', ...new Set(shops.map(s => s.loc || '未定'))];
-            document.getElementById('shop-filter-bar').innerHTML = locs.map(l => `<button onclick="setFilter('${l}')" class="text-[10px] px-4 py-1.5 rounded-full border ${currentFilter === l ? 'bg-black text-white' : 'bg-white text-gray-400'}">${l}</button>`).join('');
+            const filterBar = document.getElementById('shop-filter-bar');
+            if (filterBar) {
+                filterBar.innerHTML = locs.map(l => `
+                    <button onclick="setFilter('${l}')" 
+                            class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all flex-shrink-0 
+                            ${currentFilter === l ? 'bg-indigo-900 text-white border-indigo-900' : 'bg-white text-gray-400 border-gray-100'}">
+                        ${l}
+                    </button>
+                `).join('');
+            }
+
+            // 2. 渲染二欄式網格
+            const listContainer = document.getElementById('shopping-list');
+            if (!listContainer) return;
+
+            // 設置容器為網格佈局
+            listContainer.className = "grid grid-cols-2 gap-3";
+
             const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
-            document.getElementById('shopping-list').innerHTML = `<div class="grid grid-cols-2 gap-3">` + filtered.map(s => {
-                let img = s.img || ''; if (img && !img.startsWith('data:')) img = 'data:image/jpeg;base64,' + img;
-                return `<div class="bg-white p-3 rounded-2xl border flex flex-col gap-2 ${s.purchased ? 'purchased-item' : ''}">
-                    <div class="w-full h-32 bg-gray-50 rounded-xl bg-cover bg-center" style="background-image:url('${img}')" onclick="viewImg('${img}')"></div>
-                    <div class="flex-1 min-w-0">
-                        <b class="text-sm truncate block">${s.name}</b>
-                        <div class="text-[10px] text-gray-400 truncate">${s.spec || ''} | Qty:${s.qty || 1}</div>
-                        <div class="mt-2 flex justify-between items-center">
-                           <input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="toggleShop(${s.id})" class="accent-black">
-                           <div class="text-xs font-bold text-red-600">¥<input type="number" value="${s.price || ''}" onblur="updateShopPrice(${s.id}, this.value)" class="w-12 border-b text-right outline-none bg-transparent"></div>
+            
+            listContainer.innerHTML = filtered.map(s => {
+                let img = s.img || '';
+                if (img && !img.startsWith('data:')) img = 'data:image/jpeg;base64,' + img;
+                
+                return `
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col ${s.purchased ? 'purchased-item' : ''}">
+                    <!-- 1. 圖片 -->
+                    <div class="w-full h-36 bg-gray-50 bg-cover bg-center flex-shrink-0" 
+                         style="background-image:url('${img || 'https://via.placeholder.com/200?text=No+Photo'}')" 
+                         onclick="viewImg('${img}')">
+                    </div>
+                    
+                    <!-- 2. 商品內容 -->
+                    <div class="p-4 flex-1 flex flex-col">
+                        <!-- 商品名稱：完整顯示，不再限制行數 -->
+                        <div class="flex justify-between items-start mb-2">
+                            <b class="text-sm text-gray-800 leading-snug">${s.name}</b>
+                            <button onclick="delShop(${s.id})" class="text-gray-300 text-xs ml-2">✕</button>
+                        </div>
+
+                        <!-- 規格與數量：字體放大至 text-xs (12px) 並加深顏色 -->
+                        <div class="text-xs text-gray-600 font-medium mb-3">
+                            <i class="fas fa-info-circle mr-1 opacity-30"></i>${s.spec || '標準規格'} | Qty: ${s.qty || 1}
+                        </div>
+                        
+                        <!-- 代購場所與購買者：以標籤形式完整顯示 -->
+                        <div class="flex flex-wrap gap-1 mb-4">
+                            <span class="bg-indigo-50 text-indigo-500 text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter">
+                                <i class="fas fa-store mr-1"></i>${s.loc || '未定'}
+                            </span>
+                            <span class="bg-stone-100 text-stone-500 text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter">
+                                <i class="fas fa-user mr-1"></i>${s.purchaser || '本人'}
+                            </span>
+                        </div>
+
+                        <!-- 3. 已購買勾選與金額 (底部對齊) -->
+                        <div class="mt-auto border-t border-gray-50 pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" ${s.purchased ? 'checked' : ''} 
+                                           onchange="toggleShop(${s.id})" 
+                                           class="w-4 h-4 accent-indigo-900 rounded">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bought</span>
+                                </label>
+                            </div>
+                            <div class="flex items-center bg-gray-50 rounded-xl px-3 py-2">
+                                <span class="text-xs text-gray-400 mr-1 font-bold serif">¥</span>
+                                <input type="number" 
+                                       placeholder="金額" 
+                                       value="${s.price || ''}" 
+                                       onblur="updateShopPrice(${s.id}, this.value)"
+                                       class="w-full bg-transparent text-sm font-bold text-red-600 outline-none">
+                            </div>
                         </div>
                     </div>
                 </div>`;
-            }).join('') + `</div>`;
+            }).join('');
         }
 
         // --- 核心工具 ---
