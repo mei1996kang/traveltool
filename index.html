@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Kansai Handbook</title>
+    <title>2026 Kansai Handbook V4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,47 +14,40 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        
-        /* 行程時間軸 */
         .timeline-item { position: relative; display: flex; padding-bottom: 2.5rem; cursor: pointer; }
-        .time-side { width: 75px; flex-shrink: 0; text-align: right; padding-right: 20px; font-size: 1.4rem; font-weight: 700; position: relative; color: #111; }
-        .time-side::after { content: ''; position: absolute; right: -1px; top: 14px; width: 10px; height: 10px; background: white; border: 1px solid #ccc; border-radius: 50%; z-index: 10; }
-        .timeline-line { position: absolute; left: 74.5px; top: 14px; bottom: 0; width: 1px; background: #e5e7eb; }
-        .content-side { flex: 1; padding-left: 20px; }
-
-        /* 詳情彈窗 */
-        .modal { display: none; position: fixed; z-index: 5000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
-        .modal-content { background: white; margin: 8vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 82vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-        
-        /* 導航標籤 */
+        .time-side { width: 70px; flex-shrink: 0; text-align: right; padding-right: 15px; font-size: 1.3rem; font-weight: 700; position: relative; color: #111; }
+        .time-side::after { content: ''; position: absolute; right: -1px; top: 12px; width: 8px; height: 8px; background: white; border: 1px solid #ccc; border-radius: 50%; z-index: 10; }
+        .timeline-line { position: absolute; left: 69.5px; top: 12px; bottom: 0; width: 1px; background: #eee; }
+        .content-side { flex: 1; padding-left: 15px; }
+        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 5vh auto; width: 92%; max-width: 450px; border-radius: 24px; position: relative; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
         .nav-active { color: var(--blue) !important; font-weight: 700; }
         .day-btn.active { color: #111; font-weight: 700; border-bottom: 3px solid #111; }
-
-        /* SHOP 二欄網格 */
-        .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .purchased-item { opacity: 0.5; filter: grayscale(1); }
-        .weather-hour { min-width: 60px; flex-shrink: 0; text-align: center; }
+        .weather-hour { min-width: 55px; flex-shrink: 0; }
+        .truncate-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body class="pb-24">
 
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white z-[6000] flex items-center justify-center">
+    <div id="loading-overlay" class="fixed inset-0 bg-white z-[4000] flex items-center justify-center">
         <div class="text-center">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-900 mx-auto"></div>
-            <p class="mt-4 text-xs text-gray-400 tracking-widest uppercase">Loading Planner...</p>
+            <p class="mt-4 text-[10px] text-gray-400 tracking-widest uppercase">Initializing...</p>
         </div>
     </div>
 
-    <header class="p-8 text-center bg-transparent">
+    <header class="p-8 text-center">
         <div class="text-[10px] text-gray-400 tracking-[0.4em] mb-2 font-light uppercase">Premium Osaka Handbook</div>
-        <h1 class="text-2xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
+        <h1 class="text-xl font-bold tracking-widest serif">大阪 ● 京都 ● 兵庫</h1>
     </header>
 
     <div id="infoModal" class="modal" onclick="closeModal()">
-        <div class="modal-content p-8" onclick="event.stopPropagation()">
-            <button class="absolute top-6 right-6 text-gray-400" onclick="closeModal()"><i class="fas fa-times text-2xl"></i></button>
-            <div id="modal-body" class="space-y-6"></div>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="absolute top-4 right-4 text-white bg-black/40 w-10 h-10 rounded-full z-10" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            <div id="modal-image" class="w-full h-52 bg-cover bg-center"></div>
+            <div class="p-8 space-y-4" id="modal-body"></div>
         </div>
     </div>
 
@@ -67,7 +60,7 @@
             <button onclick="showDay(4)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">THU</span><span class="text-xl serif">2/5</span></button>
             <button onclick="showDay(5)" class="day-btn pb-1 min-w-fit"><span class="text-[10px] block font-bold">FRI</span><span class="text-xl serif">2/6</span></button>
         </div>
-        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div id="weather-section" class="mb-10 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
             <div id="weather-city" class="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-4 text-center">Hourly Weather</div>
             <div id="hourly-weather" class="flex space-x-2 overflow-x-auto hide-scrollbar"></div>
         </div>
@@ -78,15 +71,17 @@
     <div id="shopping" class="tab-content p-6">
         <div class="bg-white p-6 rounded-3xl border border-gray-100 mb-6 text-sm">
             <div class="space-y-4">
-                <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b py-2 outline-none text-base">
+                <input type="text" id="shop-name" placeholder="商品名稱" class="w-full border-b py-2 outline-none text-base font-bold">
                 <div class="grid grid-cols-2 gap-4">
                     <input type="text" id="shop-spec" placeholder="規格" class="w-full border-b py-2 outline-none">
                     <input type="number" id="shop-qty" placeholder="數量" class="w-full border-b py-2 outline-none">
                 </div>
                 <input type="text" id="shop-loc" placeholder="代購場所" class="w-full border-b py-2 outline-none">
                 <input type="text" id="shop-purchaser" placeholder="購買者" class="w-full border-b py-2 outline-none">
-                <label class="block border border-dashed border-gray-200 py-6 text-center rounded-2xl text-gray-400 text-xs cursor-pointer">
-                    <span id="shop-img-status"><i class="fas fa-camera mr-1"></i>上傳照片</span>
+                <!-- 新增備註欄位 -->
+                <textarea id="shop-remark" placeholder="備註細節 (例如顏色、口味要求)" class="w-full border-b py-2 outline-none h-12 text-sm bg-transparent"></textarea>
+                <label class="block border border-dashed border-gray-200 py-4 text-center rounded-2xl text-gray-400 text-xs cursor-pointer">
+                    <span id="shop-img-status"><i class="fas fa-camera mr-2"></i>上傳商品圖片</span>
                     <input type="file" accept="image/*" class="hidden" onchange="processImage(this)">
                 </label>
                 <button onclick="addShoppingItem()" class="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest">Add Item</button>
@@ -97,25 +92,23 @@
     </div>
 
     <!-- 3. CASH -->
-    <div id="ledger" class="tab-content p-6">
-        <div id="total-amount" class="mb-8 text-center">
+    <div id="ledger" class="tab-content p-6 text-center">
+        <div id="total-amount" class="mb-8">
             <p class="text-[10px] text-gray-400 uppercase tracking-widest"><i class="fas fa-wallet mr-2"></i>Total Spend</p>
             <div class="text-5xl font-bold serif text-red-600 mt-2">¥<span>0</span></div>
         </div>
-        <div class="bg-white p-6 rounded-3xl border text-sm mb-6">
-            <div class="space-y-4">
-                <input type="text" id="exp-name" placeholder="花費項目" class="w-full border-b py-2 outline-none text-base font-bold">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-2 outline-none text-base font-bold text-red-600">
-                    <select id="exp-method" class="border-b py-2 outline-none bg-transparent">
-                        <option>現金</option><option>刷卡</option><option>Suica</option>
-                    </select>
-                </div>
-                <input type="date" id="exp-date" class="w-full border-b py-2 outline-none">
-                <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest">Save Cash</button>
+        <div class="bg-white p-6 rounded-3xl border text-left mb-6 text-sm">
+            <input type="text" id="exp-name" placeholder="項目" class="w-full border-b py-3 mb-4 outline-none">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <input type="number" id="exp-amount" placeholder="金額 ¥" class="border-b py-2 outline-none font-bold">
+                <select id="exp-method" class="border-b py-2 outline-none bg-transparent">
+                    <option>現金</option><option>刷卡</option><option>Suica</option>
+                </select>
             </div>
+            <input type="date" id="exp-date" class="w-full border-b py-3 mb-6 outline-none">
+            <button onclick="addExpense()" class="w-full bg-black text-white py-4 rounded-full font-bold uppercase tracking-widest">Save Cash</button>
         </div>
-        <div id="expense-list" class="space-y-2"></div>
+        <div id="expense-list" class="text-left space-y-2"></div>
     </div>
 
     <!-- 4. DOCS -->
@@ -144,7 +137,7 @@
     </div>
 
     <!-- Navbar -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-50 flex justify-around p-5 safe-area-bottom z-[2000]">
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t flex justify-around p-5 safe-area-bottom z-[2000]">
         <button onclick="switchTab('itinerary')" class="nav-btn flex flex-col items-center nav-active text-gray-300"><i class="fas fa-calendar-check text-xl"></i><span class="text-[9px] mt-1">PLAN</span></button>
         <button onclick="switchTab('shopping')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-shopping-cart text-xl"></i><span class="text-[9px] mt-1">SHOP</span></button>
         <button onclick="switchTab('ledger')" class="nav-btn flex flex-col items-center text-gray-300"><i class="fas fa-wallet text-xl"></i><span class="text-[9px] mt-1">CASH</span></button>
@@ -152,51 +145,56 @@
     </nav>
 
     <script>
-        // --- 設定 (請填寫您的 GAS URL) ---
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzEv6Bda3jKfHZNoV-duexjmNT47igMmz0s_Ldm7fRyR23TH619rqp3bzYd9jXUT0yO/exec"; 
 
-        // --- 完整行程 (PDF還原) ---
         const travelData = {
-            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/2 Mon | 關西機場 ● 臨空城", items: [
-                { t: "06:30", d: "機場捷運(台北車站)", m: "交通", r: "搭乘計程車前往北車轉機捷。", map: "https://maps.app.goo.gl/MW7Zr3WvPaUYwd537", detail: { about: "時刻表查詢：<br><a href='https://www.tymetro.com.tw/tymetro-new/tw/_pages/travel-guide/timetable-search.php' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此查看</a>" }},
-                { t: "09:20", d: "星宇 JX822 起飛", m: "交通", r: "飛往關西機場 (KIX)。", detail: { about: "報到完成後可前往第二航廈享用星宇貴賓室早餐。" }},
-                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "景點", r: "落地首站血拼。", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", detail: { about: "關西最大規模，品牌齊全。夕陽極美。<br>地圖PDF：<a href='https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此打開</a>", buy: "必買：Onitsuka Tiger、西松屋、Coleman。" }},
-                { t: "19:30", d: "🍱 晚餐：大起水產", m: "美食", r: "道頓堀人氣壽司。", detail: { buy: "必吃：黑鮪魚赤身、茶碗蒸。" }},
-                { t: "22:30", d: "🍜 消夜：一蘭拉麵", m: "美食", r: "道頓堀經典分店。", detail: { about: "個人化口味，秘製紅辣粉。" }}
+            1: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, items: [
+                { t: "06:15", d: "機場捷運-台北車站", m: "交通", r: "搭乘計程車前往北車轉機捷。", img: "https://www.funtime.com.tw/blog/wp-content/uploads/2017/02/117.jpg", detail: { about: "預計05:50搭乘計程車前往機場捷運台北車站，轉乘機場捷運，預計搭乘6:15(如果趕不上就搭6:30)，6:51第一航廈下車(乘車時間約36分鐘)，到星宇航空櫃台報到，順便詢問是否有加購貴賓室活動。" }},
+                { t: "09:20", d: "星宇航空 JX822 起飛", m: "交通", r: "飛往大阪關西機場 (KIX)。", img: "https://hoshinoresorts.com/jp/guide/wp-content/uploads/2025/06/KIX_5_TB.jpg", detail: { about: "星宇航空櫃台完成報到後，搭乘機場電車前往第二航廈入關，入關後進去星宇航空貴賓室<br/>貴賓室地圖：<a href='https://www.starlux-airlines.com/zh-TW/check-in-fly/travel-information/galactic-lounge' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此打開</a>" }},
+                { t: "14:00", d: "🛍️ 臨空城 Outlet", m: "景點", r: "號稱是西日本最大的Outlet購物中心，分為店鋪較多的「Main Side」、靠海的「Sea Side」兩大區域。", map: "https://maps.app.goo.gl/ScyV1p9Va6UDRcrW8", img: "https://bobbyfun.tw/wp-content/uploads/2024/12/20241211002038_0_11ce74.jpg", detail: { about: "關西最大規模，品牌齊全。夕陽極美。<br>地圖PDF：<a href='https://www.premiumoutlets.co.jp/rinku/brands/pdf/rinku.pdf' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此打開</a>", buy: "預計購物商店：西松屋 / Coleman / Crocs / Earth Music&Ecology / Onitsuka Tiger" }},
+                { t: "20:30", d: "飯店：大阪難波GRIDS PREMIUM酒店", m: "飯店", r: "住宿飯店。", map: "https://maps.app.goo.gl/3L5dHm9utxgLAQLn6", img: "https://i1.wp.com/pix5.agoda.net/hotelimages/14675949/-1/31f018bdf67789f8fc46b79a8a4d4b05.jpg", detail: { about: "透過klook預定，訂單編號：VSU824425<br/> 供應商參考編號：TL789631722<br/>入住憑證資料：<a href='https://drive.google.com/file/d/1sSeca4Cu_KtFNq3s8Iob10yGzNjE73TC/view?usp=sharing' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此打開</a>" }},
+				{ t: "19:30", d: "🍱 晚餐：大起水產 迴轉壽司 道頓堀店", m: "美食", r: "是源自日本關西的知名連鎖迴轉壽司，成立於1975年，以「產地直送」的平價高品質海鮮著稱，壽司盤價約100日圓起。", map: "https://maps.app.goo.gl/Pgz2RmuSs6jBQs2m6", img: "https://www.wildwildtravel.com/image/special/8101019-1.jpg", detail: { buy: "• 黑鮪魚赤身/中腹<br>• 炙燒鮭魚肚<br>• 海膽軍艦（看當天品質）<br>• 茶碗蒸（日本版本超嫩）" }},
+                { t: "22:30", d: "🍜 消夜：一蘭拉麵 道頓堀或御堂筋", m: "美食", r: "經典天然豚骨拉麵，傳統紅色圓碗，提供招牌秘製辣醬。", img: "https://venuslin.tw/wp-content/uploads/20180331001135_7.jpg", detail: { about: "大阪道頓堀與心齋橋區域有多間一蘭拉麵，最熱門為「道頓堀店（本館/別館）」，主打經典豚骨湯頭，24小時營業。而鄰近的「一蘭拉麵難波御堂筋店」為全球唯一「100%不使用豬肉」分店，以雞湯搭配牛五花、方形重箱容器為最大特色，深受喜愛不同口味的遊客歡迎。 " }}
             ]},
-            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, title: "2/3 Tue | 海之京都一日遊", items: [
-                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", r: "賞舟屋、餵海鷗。", detail: { about: "日本最美村莊，秘境深藍海景。" }},
-                { t: "11:00", d: "🚠 天橋立傘松公園", m: "景點", r: "三景「倒頭栽」。", detail: { buy: "必吃：智惠團子。" }},
-                { t: "14:45", d: "🏡 美山茅草屋之里", m: "景點", r: "原始合掌村風景。", detail: { buy: "推薦：美山牛乳甜點。" }}
+            2: { city: "Kyoto", coords: {lat: 35.55, lon: 135.19}, items: [
+                { t: "06:30", d: "出發蟹道樂道頓堀東店集合", m: "交通", r: "KKDAY一日行程，7點要到集合點。", map: "https://maps.app.goo.gl/FXcLdrLeo3r2ttEU6", img: "https://douraku.co.jp/lacne/photo/upload/C7gBww7b7ExlBCgc.jpg", detail: { about: "行李寄放在飯店櫃檯，走到集合點(約需15分鐘請提早出門)，路上可以買早餐帶上車吃。<br/>KKDAY一日行程訂單編號：25KK268490554 <br/>憑證資料：<a href='https://drive.google.com/file/d/1lvef3jUK6nyac9V6v-UAJHQPCnEhdP7J/view?usp=sharing' target='_blank' style='color:#2563eb;text-decoration:underline;'>點此打開</a>" }},
+                { t: "10:00", d: "🚢 伊根灣遊覽船", m: "景點", r: "是遊覽京都伊根舟屋的經典方式，船程約25-30分鐘，從海上一覽約230間傳統舟屋的絕景。", map: "https://maps.app.goo.gl/gFF28xt9ksjHGYez9", img: "https://i0.wp.com/journey.tw/wp-content/uploads/2025/03/20250305042038_0_b1533a.jpg?", detail: { about: "伊根-日本最美鄉村之一，也被稱爲日本威尼斯。它美麗的風景和豐富的自然資源被國際高度認可。是世界最美海灣聯盟成員之一。同時也是法國聖米歇爾灣的姐妹灣。<br/>餵食海鷗是遊覽船的樂趣之一。在販賣部購買飼料，將飼料往頭上高舉，海鷗便以靈活的身手飛來叼走，是他處沒有的珍貴體驗。", buy: "伊根布丁-伊根灣遊覽船日出站內限定甜點。<br/>向井酒造-伊根滿開酒粕冰淇淋。" }},
+                { t: "11:00", d: "🚠 天橋立傘松公園", m: "景點", r: "天橋立傘松公園位於京都府宮津市的成相山中腹，是俯瞰日本三景「天橋立」的著名觀景台，以獨特的「昇龍觀」景色著稱。", map: "https://maps.app.goo.gl/EoN1RJgRTWnvNWR37", img: "https://static.gltjp.com/glt/data/article/21000/20517/20231113_151005_7a16da40_w1280.webp", detail: { about: "從此處可欣賞天橋立沙洲像一條巨龍飛上天空的壯觀畫面。遊客通常會從山麓的府中站搭乘纜車或吊椅上山，並在觀景台體驗著名的「胯下觀景」（倒著看），將沙洲當作連接天地的橋樑。 ",buy: "● 昇龍觀（Shoryu-kan）：從海拔約 130 公尺的公園北側俯瞰，天橋立沙洲形似飛龍，氣勢磅礴。<br/>● 胯下觀景發祥地（Matanozoki）：彎腰從兩腿之間倒看天橋立，天地顛倒，彷彿橋樑架在天空上。<br/>● つるや食堂 (Tsuruya)：丹後寶藏丼-鋪滿當季新鮮魷魚、海藻、螺類的在地特色海鮮丼。<br/>● 智惠之輪投石：將「智慧瓦片」投擲進山坡上的圓形鐵圈，傳說穿過即可消災解厄、心想事成。<br/>● 吉祥物：可愛的娃娃「Kasa-bou」（傘醬）是這裡的特色形象。 " }},
+                { t: "14:45", d: "🏡 美山茅草屋之里", m: "景點", r: "坐落於南丹市，與岐阜縣白川鄉、福島縣大內宿並列為「日本三大茅葺屋聚落」。", map: "https://maps.app.goo.gl/9qeGjH26zLkmPQJ48", img: "https://hiyori.cc/wp/wp-content/uploads/2024/01/%E7%BE%8E%E5%B1%B1%E3%81%8B%E3%82%84%E3%81%B5%E3%82%99%E3%81%8D%E3%81%AE%E9%87%8C%EF%BC%9A%E4%BA%AC%E9%83%BD%E5%90%88%E6%8E%8C%E6%9D%91%E8%87%AA%E9%A7%95%E4%B8%80%E6%97%A5%E9%81%8A%EF%BC%8C%E6%B5%AA%E6%BC%AB%E8%8C%85%E8%8D%89%E5%8F%A4%E6%B0%91%E5%AE%B6%E6%95%A3%E7%AD%96%EF%BC%86%E7%B6%93%E7%87%9F11%E5%B9%B4%E3%80%8C%E7%BE%8E%E5%8D%B5%E5%92%96%E5%95%A1%E5%BA%97%E3%80%8D%E8%87%AA%E5%AE%B6%E8%A3%BD%E7%84%A6%E7%B3%96%E5%B8%83%E4%B8%81115.jpg", detail: { about: "● 傳統建築與風貌： 村落內的房子為「入母屋」造式樣，牆壁多為木造，搭配厚重的茅草屋頂，且完全不用一根釘子，全靠卡榫與粗草繩固定。<br/>● 世外桃源： 相較於商業化較高的白川鄉，美山保留了更多的寧靜與鄉村原始風貌，讓人有穿越時光之感。<br/>● 四季絕景： 春季櫻花與新綠、夏季的繡球花與向日葵、秋季紅葉，以及冬季覆蓋白雪的「雪燈廊」點燈活動。<br/>● 美山民俗資料館： 展示當地傳統生活器具，可了解過去的農家生活。<br/>● 紅色郵筒： 村口的經典拍照地，帶有懷舊氣息。<br/>● 藍染工坊： 可欣賞精緻的絞染作品。", buy: "●<a href='https://maps.app.goo.gl/qm3ebKhTwkn2sKc89' target='_blank' style='color:#2563eb;text-decoration:underline;'>Café美卵</a>-自家製焦糖布丁、黑豆冰淇淋、熱牛奶。" }},
+                { t: "17:45", d: "返抵蟹道樂道頓堀東店", m: "交通", r: "回到大阪市區，先吃晚餐後回飯店領取行李。", img: "https://douraku.co.jp/lacne/photo/upload/C7gBww7b7ExlBCgc.jpg", detail: { about: "如果要逛心齋橋，先吃晚餐在去領行李返回梅田。" }},
+                { t: "18:00", d: "🍱 晚餐：福太郎大阪燒", m: "交通", r: "福太郎（Fukutaro）是大阪知名的高評價排隊人氣名店，曾獲米其林必比登推薦，主打口感外酥內軟的「傳統大阪燒」與鋪滿鮮蔥的「蔥燒（Negiyaki）」。", map: "https://maps.app.goo.gl/yi3DiBYQuMvNCfCc9", img: "https://i0.wp.com/nigi33.tw/wp-content/uploads/pixnet/ec078d40d8a9d8a9da9b24defd4d434f.jpg?", detail: { about: "如果太多人可以改到day4梅田分店吃",buy:"● 招牌豬肉蔥燒 (豚ねぎ焼)： 使用大量青蔥、鹿兒島豬肉，醬油風味清爽，口感外微脆內軟。<br/>● 麻糬起司燒 (もちチーズ焼)： 綜合了起司的濃郁與麻糬的Q彈，非常受到歡迎。<br/>● 綜合大阪燒 (トリプル玉焼)： 內含豬肉、蝦子、魷魚，配料豐富。<br/>● 招牌炒麵 (焼そば)： 粗麵Q彈，醬汁入味，被認為是「被大阪燒耽誤的炒麵」。<br/>● 兩人點一份大阪燒+一份炒麵較為剛好，以免太膩。  " }},
+				{ t: "20:30", d: "飯店：Hotel Hankyu RESPIRE OSAKA", m: "飯店", r: "住宿飯店。", map: "https://maps.app.goo.gl/2T1TyQL7fXr3VW866", img: "https://www.taiwanhot.net/cache/727599/lg/wp-content-uploads-2019-07-5d25f5e001c84.jpg", detail: { about: "位於大阪梅田核心地帶（友都八喜梅田塔內），於 2019 年開幕，交通直結 JR 大阪站與地鐵，主打高層景觀房、乾濕分離衛浴及現代化設施，是交通、購物與舒適住宿兼具的熱門 4.5 星級住宿選擇。 " }}
             ]},
-            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, title: "2/4 Wed | 貴船神社點燈", items: [
-                { t: "14:40", d: "⛩️ 貴船神社參拜", m: "景點", r: "燈籠石階氣氛絕佳。", detail: { buy: "體驗：水占卜。" }},
-                { t: "20:30", d: "🥩 晚餐：燒肉力丸", m: "美食", r: "放題燒肉預約。", detail: { buy: "必吃：鹽蔥牛舌。" }}
+            3: { city: "Kyoto", coords: {lat: 35.01, lon: 135.76}, items: [
+                { t: "09:00", d: "梅田", m: "景點", r: "梅田百貨公司逛街。", img: "https://img.enjoy-osaka-kyoto-kobe.com/wp-content/uploads/2025/03/11095148/umeda1.jpg", detail: { about: "yodobashi、uniqlo、3coins、ABC mart、板急梅田" }},
+				{ t: "11:00", d: "GARIGUETTE Osaka 梅田", m: "美食", r: "日本超人氣的法式千層酥專賣店。", map: "https://maps.app.goo.gl/JHBZPQPHBfW8qqUh6", img: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/2d/4e/8a/68/caption.jpg", detail: { about: "以獨特的唱片造型、現場製作、酥脆派皮和豐富餡料聞名，使用北海道直送奶油和牛奶，並提供草莓、葡萄、白桃等季節限定口味，可選「一半一半」一次品嚐兩種口味。 。" }},
+				{ t: "12:30", d: "出發前往貴船", m: "交通", r: "把購買後商品放回飯店準備前往貴船神社。", map: "https://maps.app.goo.gl/SvgWXSoRWSZLfkha9", img: "https://img.enjoy-osaka-kyoto-kobe.com/wp-content/uploads/2025/03/11095148/umeda1.jpg", detail: { about: "大阪環狀線(大和路快速電車 天王寺)3站/7分鐘，起訖站：大阪車站>京橋（大阪)<br/>京阪本線(特急出町柳)8站/46分鐘，起訖站：京橋（大阪)>出町柳<br/>叡山電鐵本線(普通鞍馬)13站/28分鐘，起訖站：出町柳>貴船口<br/>３３巴士(貴船神社 貴船)3站/4分鐘，起訖站：叡電貴船口駅前>貴船" }},
+				{ t: "14:40", d: "⛩️ 貴船神社", m: "景點", r: "燈籠石階與水占卜。", map: "https://maps.app.goo.gl/SvgWXSoRWSZLfkha9", img: "https://image1.gamme.com.tw/news2/2014/77/20/p6CWnp_ak6KX.jpg", detail: { about: "貴船神社最著名的景色莫過於前往本宮的石階參道。兩側整齊排列的朱紅燈籠，與石階、樹影、四季風景交織成夢幻畫面。春有新綠、夏有溪風、秋有紅葉、冬則覆雪如詩，每一季都吸引攝影愛好者造訪。夜間點燈時，更散發神秘浪漫的氛圍。", buy: "• 水占卜（みずみくじ）：把籤放水中才會顯字，在本宮可以體驗，每次300日圓<br/>• 祈求：姻緣、良緣、事業運<br/>• 預計16:30點燈" }},
+                { t: "17:30", d: "飯店：Hotel Hankyu RESPIRE OSAKA", m: "交通", r: "回到大阪準備吃晚餐。", map: "https://maps.app.goo.gl/2T1TyQL7fXr3VW866", img: "https://img.enjoy-osaka-kyoto-kobe.com/wp-content/uploads/2025/03/11095148/umeda1.jpg", detail: { about: "３３巴士(貴船口站前)4站/4分鐘，起訖站：貴船>叡電貴船口駅前<br/>５２巴士(國際會館站前(市原・川島織物・地球研前・北稜高中前))18站/26分鐘，起訖站：貴船口>國際會館站前<br/>烏丸線(普通新田邊)8站/16分鐘，起訖站：國際會館>四條（京都市營）<br/>阪急京都線(準特急大阪梅田（阪急）)9站/46分鐘，起訖站：烏丸>大阪梅田（阪急）" }},
+				{ t: "20:30", d: "🥩 晚餐：燒肉力丸 梅田東通り店", m: "美食", r: "大阪人氣放題燒肉。", map: "https://maps.app.goo.gl/YdqmuB15HzPWNuqMA", img: "https://auntie.tw/wp-content/uploads/2024/05/20241002wirn2.jpg", detail: { about: "已預約20:30，可查詢信件：【燒肉力丸 東通店】感謝您的預約。", buy: "• 鹽蔥牛舌<br/>• 和牛肩胛<br/>• 烤蒜片＋白飯（隱藏王者）" }}
             ]},
-            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, title: "2/5 Thu | 姬路城巡禮", items: [
-                { t: "09:30", d: "🔴 勝尾寺", m: "景點", r: "滿山達摩勝運寺。", detail: { about: "祈求學業事業順利。" }},
-                { t: "13:35", d: "🏯 姬路城參觀", m: "景點", r: "世界遺產「白鷺城」。", detail: { buy: "名物：白色布丁、關東煮。" }}
+            4: { city: "Hyogo", coords: {lat: 34.81, lon: 134.69}, items: [
+                { t: "08:00", d: "出發勝尾寺", m: "交通", r: "吃完飯店早餐出發前往勝尾寺。", map: "https://maps.app.goo.gl/vzR71T8C9Q4hvF2B9", img: "https://img.enjoy-osaka-kyoto-kobe.com/wp-content/uploads/2025/03/11095148/umeda1.jpg", detail: { about: "搭乘地鐵御堂筋線至「箕面萱野站」，轉乘阪急巴士（30路特急）直達或改搭乘計程車<br/><a href='https://japantravel.navitime.com/zh-tw/area/jp/depArrTimeList/00348506/00152123/00037701?' target='_blank' style='color:#2563eb;text-decoration:underline;'>巴士時刻表</a>", buy: "巴士800日圓/人，計程車2700日圓一台"}},
+				{ t: "09:30", d: "🔴 勝尾寺", m: "景點", r: "以祈求「勝運」（特別是戰勝自己、考試合格、事業成功）聞名。", map: "https://maps.app.goo.gl/vzR71T8C9Q4hvF2B9", img: "https://assets.funliday.com/posts/wp-content/uploads/2024/08/21002126/mv01-1024x518.jpg", detail: { about: "「勝尾寺」與勝利達摩： 古時因治癒天皇病痛被賜名「法力勝過王者之寺」，簡稱勝王寺，後轉為勝尾寺。寺內滿是信徒祈求後留下的「達摩不倒翁」，紅色達摩隱藏在石階、屋簷、樹根間，形成獨特景觀。<br/>達摩神籤： 參拜者可購買小的達摩不倒翁，寫下心願，並在達成後回到寺中奉納，這使得寺內隨處可見寫上願望的紅色達摩。<br/>門票： 500日圓<a href='https://www.asoview.com/item/ticket/ticket0000039224/' target='_blank' style='color:#2563eb;text-decoration:underline;'>購票連結</a>。", buy: "● 集章明信片： 園區內有6個集章點，集滿可獲得完整達摩圖案明信片。<br/>● 達摩雞蛋糕：勝尾寺入口/出口處的販賣攤位。<br/>● 達摩軟糖(味覺糖)：外表為紅色達摩包裝，小袋方便送禮。<br/>● 蜂蜜奶油乳酪夾心餅乾： 勝尾寺原創，口感酥脆。" }},
+                { t: "11:00", d: "前往姬路城", m: "交通", r: "從勝尾寺前往姬路城。", map: "https://maps.app.goo.gl/2T1TyQL7fXr3VW866", img: "https://assets.funliday.com/posts/wp-content/uploads/2024/08/21002126/mv01-1024x518.jpg", detail: { about: "搭乘巴士回到[箕面萱野站]，再搭乘地鐵到新大阪站，換乘JR新幹線「Nozomi 65」", buy: "新幹線門票需到窗口購買，或網站先買(klook)" }},
+				{ t: "13:35", d: "🏯 姬路城", m: "景點", r: "因其雪白牆面與優美姿態被譽為「白鷺城」，是日本首批世界文化遺產、國寶及「日本100名城」之一。", map: "https://maps.app.goo.gl/AfGV7viaSPbmvUDc8", img: "https://pt-tour.tw/wp-content/uploads/2016/11/img_1.jpeg", detail: { about: "• 與熊本城、松本城合稱「日本三大名城」<br/>• 門票：1000日圓<br/>八方皆正面： 從不同角度看，姬路城都展現出完美的雄偉姿態。", buy: "• 姬路城白色布丁しろプリン<br/>• 姬路關東煮<br/>• 神戶牛<br/>• Cafe de Muche杏仁吐司" }},
+				{ t: "16:00", d: "飯店：Hotel Hankyu RESPIRE OSAKA", m: "交通", r: "回到大阪準備吃晚餐。", map: "https://maps.app.goo.gl/2T1TyQL7fXr3VW866", img: "https://img.enjoy-osaka-kyoto-kobe.com/wp-content/uploads/2025/03/11095148/umeda1.jpg", detail: { about: "搭乘JR 東海道、山陽本線(新快速米原 經由 敦賀)，大阪車站下車" }}
             ]},
-            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, title: "2/6 Fri | 賦歸桃園", items: [
-                { t: "08:00", d: "機場接送出發", m: "交通", r: "KKDAY 預約接送。" },
-                { t: "12:20", d: "✈️ 星宇 JX821 起飛", m: "交通", r: "關西機場 (KIX) 出發。" }
+            5: { city: "Osaka", coords: {lat: 34.69, lon: 135.50}, items: [
+                { t: "08:00", d: "🚐 機場接送", m: "交通", r: "搭接送前往關西機場。", img: "https://img.enjoy-osaka-kyoto-kobe.com/wp-content/uploads/2025/03/11095148/umeda1.jpg", detail: { about: "已預約KKDAY機場接送(訂單編號：25KK257470767)，前兩天記得與客服確認司機聯繫方式!" }},
+				{ t: "09:20", d: "星宇航空 JX821 起飛", m: "交通", r: "飛往桃園機場 (TPE)。", img: "https://hoshinoresorts.com/jp/guide/wp-content/uploads/2025/06/KIX_5_TB.jpg", detail: { about: "星宇航空櫃台完成報到後，出境安檢，前往三樓星宇航空(KIX Lounge Kansai)貴賓室<br/>JCB配合貴賓室<a href='https://www.kansai-airport.or.jp/tw/service/lounge/credit-card' target='_blank' style='color:#2563eb;text-decoration:underline;'>購票連結</a>" }}
             ]}
         };
 
-        // --- 全域變數 ---
         let shops = JSON.parse(localStorage.getItem('tr_shop_v13')) || [];
         let exps = JSON.parse(localStorage.getItem('tr_exp_v13')) || [];
         let currentFilter = 'All';
         let tempImg = null;
 
-        // --- 啟動與同步 ---
         async function initData() {
-            // 1. 立即渲染本地內容 (不卡死)
             showDay(1); renderShop(); renderLedger();
             document.getElementById('loading-overlay').classList.add('hidden');
-
-            // 2. 背景進行雲端抓取
-            if (GAS_URL.includes("https")) {
+            if (GAS_URL.startsWith("https")) {
                 try {
                     const r = await fetch(GAS_URL, { signal: AbortSignal.timeout(6000) });
                     const c = await r.json();
@@ -220,7 +218,6 @@
             } catch(e) {}
         }
 
-        // --- 渲染函數 ---
         function showDay(day) {
             const data = travelData[day];
             fetchWeather(day);
@@ -242,6 +239,7 @@
         function openDetail(day, idx) {
             const it = travelData[day].items[idx];
             const detail = it.detail || {};
+            document.getElementById('modal-image').style.backgroundImage = `url('${it.img}')`;
             document.getElementById('modal-body').innerHTML = `
                 <div class="flex items-center gap-2"><span class="text-[10px] bg-black text-white px-2 py-1 font-bold uppercase">${it.m}</span><span class="text-sm serif font-bold text-gray-300">${it.t}</span></div>
                 <h2 class="text-2xl font-bold serif leading-tight">${it.d}</h2>
@@ -252,94 +250,40 @@
         }
 
         function renderShop() {
-            // 1. 處理場所篩選按鈕 (Filter Bar)
             const locs = ['All', ...new Set(shops.map(s => s.loc || '未定'))];
-            const filterBar = document.getElementById('shop-filter-bar');
-            if (filterBar) {
-                filterBar.innerHTML = locs.map(l => `
-                    <button onclick="setFilter('${l}')" 
-                            class="filter-btn text-[10px] px-4 py-1.5 rounded-full border transition-all flex-shrink-0 
-                            ${currentFilter === l ? 'bg-indigo-900 text-white border-indigo-900' : 'bg-white text-gray-400 border-gray-100'}">
-                        ${l}
-                    </button>
-                `).join('');
-            }
-
-            // 2. 渲染二欄式網格
-            const listContainer = document.getElementById('shopping-list');
-            if (!listContainer) return;
-
-            // 設置容器為網格佈局
-            listContainer.className = "grid grid-cols-2 gap-3";
-
+            document.getElementById('shop-filter-bar').innerHTML = locs.map(l => `<button onclick="setFilter('${l}')" class="text-[10px] px-4 py-1.5 rounded-full border ${currentFilter === l ? 'bg-black text-white' : 'bg-white text-gray-400'}">${l}</button>`).join('');
             const filtered = currentFilter === 'All' ? shops : shops.filter(s => s.loc === currentFilter);
-            
-            listContainer.innerHTML = filtered.map(s => {
-                let img = s.img || '';
-                if (img && !img.startsWith('data:')) img = 'data:image/jpeg;base64,' + img;
-                
-                return `
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col ${s.purchased ? 'purchased-item' : ''}">
-                    <!-- 1. 圖片 -->
-                    <div class="w-full h-36 bg-gray-50 bg-cover bg-center flex-shrink-0" 
-                         style="background-image:url('${img || 'https://via.placeholder.com/200?text=No+Photo'}')" 
-                         onclick="viewImg('${img}')">
-                    </div>
-                    
-                    <!-- 2. 商品內容 -->
-                    <div class="p-4 flex-1 flex flex-col">
-                        <!-- 商品名稱：完整顯示，不再限制行數 -->
-                        <div class="flex justify-between items-start mb-2">
-                            <b class="text-sm text-gray-800 leading-snug">${s.name}</b>
-                            <button onclick="delShop(${s.id})" class="text-gray-300 text-xs ml-2">✕</button>
+            document.getElementById('shopping-list').innerHTML = `<div class="grid grid-cols-2 gap-3">` + filtered.map(s => {
+                let img = s.img || ''; if (img && !img.startsWith('data:')) img = 'data:image/jpeg;base64,' + img;
+                return `<div class="bg-white p-3 rounded-2xl border flex flex-col gap-2 ${s.purchased ? 'purchased-item' : ''}">
+                    <div class="w-full h-36 bg-gray-50 rounded-xl bg-cover bg-center flex-shrink-0" style="background-image:url('${img}')" onclick="viewImg('${img}')"></div>
+                    <div class="p-1 flex-1 flex flex-col">
+                        <b class="text-sm leading-snug">${s.name}</b>
+                        <div class="text-xs text-gray-600 font-medium mt-1">${s.spec || ''} | Qty:${s.qty || 1}</div>
+                        <div class="flex flex-wrap gap-1 mt-2">
+                            <span class="bg-indigo-50 text-indigo-500 text-[9px] px-1.5 py-0.5 rounded font-bold tracking-tighter">${s.loc || '未定'}</span>
+                            <span class="bg-gray-100 text-gray-400 text-[9px] px-1.5 py-0.5 rounded font-bold tracking-tighter">${s.purchaser || '我'}</span>
                         </div>
-
-                        <!-- 規格與數量：字體放大至 text-xs (12px) 並加深顏色 -->
-                        <div class="text-xs text-gray-600 font-medium mb-3">
-                            <i class="fas fa-info-circle mr-1 opacity-30"></i>${s.spec || '標準規格'} | Qty: ${s.qty || 1}
-                        </div>
-                        
-                        <!-- 代購場所與購買者：以標籤形式完整顯示 -->
-                        <div class="flex flex-wrap gap-1 mb-4">
-                            <span class="bg-indigo-50 text-indigo-500 text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter">
-                                <i class="fas fa-store mr-1"></i>${s.loc || '未定'}
-                            </span>
-                            <span class="bg-stone-100 text-stone-500 text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-tighter">
-                                <i class="fas fa-user mr-1"></i>${s.purchaser || '本人'}
-                            </span>
-                        </div>
-
-                        <!-- 3. 已購買勾選與金額 (底部對齊) -->
-                        <div class="mt-auto border-t border-gray-50 pt-3">
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" ${s.purchased ? 'checked' : ''} 
-                                           onchange="toggleShop(${s.id})" 
-                                           class="w-4 h-4 accent-indigo-900 rounded">
-                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bought</span>
-                                </label>
-                            </div>
-                            <div class="flex items-center bg-gray-50 rounded-xl px-3 py-2">
-                                <span class="text-xs text-gray-400 mr-1 font-bold serif">¥</span>
-                                <input type="number" 
-                                       placeholder="金額" 
-                                       value="${s.price || ''}" 
-                                       onblur="updateShopPrice(${s.id}, this.value)"
-                                       class="w-full bg-transparent text-sm font-bold text-red-600 outline-none">
-                            </div>
+                        ${s.remark ? `<div class="text-[10px] text-gray-400 mt-2 italic border-l-2 pl-2">${s.remark}</div>` : ''}
+                        <div class="mt-4 border-t pt-2">
+                           <div class="flex items-center justify-between">
+                              <label class="text-[10px] font-bold text-gray-400 uppercase"><input type="checkbox" ${s.purchased ? 'checked' : ''} onchange="toggleShop(${s.id})" class="accent-indigo-900 mr-1">Bought</label>
+                              <button onclick="delShop(${s.id})" class="text-gray-200">✕</button>
+                           </div>
+                           <div class="text-sm font-bold text-red-600 mt-1">¥<input type="number" value="${s.price || ''}" onblur="updateShopPrice(${s.id}, this.value)" class="w-16 border-b text-right outline-none bg-transparent"></div>
                         </div>
                     </div>
                 </div>`;
-            }).join('');
+            }).join('') + `</div>`;
         }
 
-        // --- 核心工具 ---
         function addShoppingItem() {
             const name = document.getElementById('shop-name').value; if(!name) return;
-            const it = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, img: tempImg, purchased: false, price: "" };
+            const it = { id: Date.now(), name, spec: document.getElementById('shop-spec').value, qty: document.getElementById('shop-qty').value, loc: document.getElementById('shop-loc').value, purchaser: document.getElementById('shop-purchaser').value, remark: document.getElementById('shop-remark').value, img: tempImg, purchased: false, price: "" };
             shops.unshift(it); localStorage.setItem('tr_shop_v13', JSON.stringify(shops));
-            renderShop(); syncToSheets("shop", it); document.getElementById('shop-name').value = ''; tempImg = null; document.getElementById('shop-img-status').innerText = "上傳照片";
+            renderShop(); syncToSheets("shop", it); document.getElementById('shop-name').value = ''; document.getElementById('shop-remark').value = ''; tempImg = null; document.getElementById('shop-img-status').innerText = "上傳照片";
         }
+
         function toggleShop(id) { const i = shops.findIndex(s => s.id === id); shops[i].purchased = !shops[i].purchased; localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); syncToSheets("shop", shops[i]); }
         function updateShopPrice(id, p) { const i = shops.findIndex(s => s.id === id); shops[i].price = p; localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); syncToSheets("shop", shops[i]); }
         function delShop(id) { shops = shops.filter(s => s.id !== id); localStorage.setItem('tr_shop_v13', JSON.stringify(shops)); renderShop(); syncToSheets("del_shop", {id}); }
@@ -362,12 +306,12 @@
                 const i = new Image(); i.onload = () => {
                     const c = document.createElement('canvas'); c.width = 400; c.height = (i.height/i.width)*400;
                     c.getContext('2d').drawImage(i, 0, 0, 400, c.height); tempImg = c.toDataURL('image/jpeg', 0.4);
-                    document.getElementById('shop-img-status').innerText = "✅ 圖片已選取";
+                    document.getElementById('shop-img-status').innerText = "✅ 圖片已就緒";
                 }; i.src = e.target.result;
             }; r.readAsDataURL(input.files[0]);
         }
 
-        async function syncToSheets(type, data) { if (GAS_URL.includes("https")) fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data }) }); }
+        async function syncToSheets(type, data) { if (GAS_URL.includes("https")) { let s = JSON.parse(JSON.stringify(data)); if (s.img && s.img.length > 40000) s.img = "Img Over"; fetch(GAS_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify({ type, data: s }) }); } }
         function switchTab(t) { document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); document.getElementById(t).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('text-gray-300')); event.currentTarget.classList.remove('text-gray-300'); }
         function closeModal() { document.getElementById('infoModal').style.display = 'none'; }
         function navigate(l) { window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(l)}`, '_blank'); }
