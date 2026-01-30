@@ -3,12 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 Kansai Handbook V4</title>
+    <title>2026 Kansai Handbook</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #fcfaf7; --main: #2a2a2a; --blue: #1a2a6c; }
+        /* 強制修正 Flex 佈局下的文字溢出問題 */
+		.content-side {
+			min-width: 0; /* 讓 Flex 子元素可以縮小 */
+		}
+
+		.content-side p, .content-side h4 {
+			white-space: normal !important; /* 確保不使用 nowrap */
+			word-break: break-all;         /* 針對沒有空格的長字串強制斷行 */
+			overflow-wrap: break-word;     /* 針對一般文字斷行 */
+		}
+
+		/* 確保整個頁面容器不允許水平溢出 */
+		body, html {
+			overflow-x: hidden;
+			width: 100%;
+		}
+		:root { --bg: #fcfaf7; --main: #2a2a2a; --blue: #1a2a6c; }
         body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--bg); color: var(--main); line-height: 1.6; font-size: 16px; }
         .serif { font-family: 'Playfair Display', serif; }
         .tab-content { display: none; }
