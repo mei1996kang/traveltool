@@ -8,7 +8,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* 強制修正 Flex 佈局下的文字溢出問題 */
+        /* 代購篩選列優化 */
+		#shop-filter-bar {
+			padding: 4px 0;
+			max-height: 150px; /* 限制高度，如果地點真的太多，可以滾動這個小區域 */
+			overflow-y: auto;
+		}
+
+		/* 標籤選中時的平滑效果 */
+		.filter-btn {
+			white-space: nowrap;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		/* 強制修正 Flex 佈局下的文字溢出問題 */
 		.content-side {
 			min-width: 0; /* 讓 Flex 子元素可以縮小 */
 		}
